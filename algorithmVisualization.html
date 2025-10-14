@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siêu Công Cụ Mô Phỏng Giải Thuật</title>
+    <style>
+        :root {
+            --bg-color: #2c3e50;
+            --container-bg-color: #34495e;
+            --text-color: #ecf0f1;
+            --button-color: #3498db;
+            --button-hover-color: #2980b9;
+            --button-action-color: #e74c3c;
+            --button-action-hover-color: #c0392b;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+
+            /* Pathfinding Colors */
+            --node-border-color: rgba(46, 204, 113, 0.2);
+            --node-start-color: #2ecc71;
+            --node-finish-color: #e74c3c;
+            --node-wall-color: #7f8c8d;
+            --node-visited-color: rgba(52, 152, 219, 0.75);
+            --node-visited-b-color: rgba(241, 196, 15, 0.75); /* For bidirectional */
+            --node-path-color: #f1c40f;
+
+            /* Sorting Colors */
+            --bar-default-color: #3498db;
+            --bar-compare-color: #f1c40f;
+            --bar-swap-color: #e74c3c;
+            --bar-sorted-color: #2ecc71;
+            --bar-pivot-color: #9b59b6;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        h1, h2 { margin: 0 0 10px 0; }
+        p { margin: 5px 0 0 0; color: #bdc3c7; }
+
+        .app-container {
+            width: 98%;
+            max-width: 1400px;
+            padding: 20px;
+        }
+        
+        #main-menu { text-align: center; }
+        #main-menu h1 { font-size: 2.5em; }
+        .menu-buttons { display: flex; justify-content: center; gap: 30px; margin-top: 30px; }
+        .menu-buttons button { font-size: 1.5em; padding: 20px 40px; }
+
+        .visualizer-container { display: none; }
+        
+        .controls {
+            background-color: var(--container-bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .control-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        
+        #algo-info { text-align: center; margin-bottom: 15px; font-style: italic; color: #bdc3c7; min-height: 20px; }
+
+        button, select {
+            padding: 10px 18px;
+            border-radius: 5px;
+            border: none;
+            background-color: var(--button-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+        
+        button:hover, select:hover { background-color: var(--button-hover-color); box-shadow: 0 6px 8px var(--shadow-color); }
+        button:active, select:active { box-shadow: 0 2px 4px var(--shadow-color); transform: translateY(1px); }
+        .visualize-btn { background-color: var(--button-action-color); }
+        .visualize-btn:hover { background-color: var(--button-action-hover-color); }
+        button:disabled, select:disabled { background-color: #95a5a6; cursor: not-allowed; box-shadow: none; }
+        
+        /* --- Pathfinding Specific Styles --- */
+        #grid-container { display: grid; border: 1px solid var(--node-start-color); margin: 0 auto; }
+        .node { width: 25px; height: 25px; outline: 1px solid var(--node-border-color); }
+        .node-start { background-color: var(--node-start-color); }
+        .node-finish { background-color: var(--node-finish-color); }
+        .node-wall { background-color: var(--node-wall-color); animation: growWall 0.3s; }
+        .node-visited { animation: visitedAnimation 1.5s forwards; }
+        .node-visited-b { animation: visitedAnimationB 1.5s forwards; }
+        .node-shortest-path { animation: pathAnimation 1.5s forwards; }
+
+        /* --- Sorting Specific Styles --- */
+        #sorting-visualization-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Align containers to the bottom */
+            min-height: 450px;
+            background-color: var(--container-bg-color);
+            padding: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 1px;
+        }
+        .bar { 
+            display: inline-block; 
+            background-color: var(--bar-default-color);
+            transition: height 0.2s, background-color 0.2s; 
+        }
+        .bar-label {
+            font-size: 10px;
+            color: var(--text-color);
+            margin-top: 5px;
+        }
+
+        /* --- Animations --- */
+        @keyframes visitedAnimation { 0%{transform:scale(.3); background-color:#1abc9c; border-radius:100%} 50%{background-color:var(--node-visited-color)} 75%{transform:scale(1.2)} 100%{transform:scale(1); background-color:var(--node-visited-color)} }
+        @keyframes visitedAnimationB { 0%{transform:scale(.3); background-color:#1abc9c; border-radius:100%} 50%{background-color:var(--node-visited-b-color)} 75%{transform:scale(1.2)} 100%{transform:scale(1); background-color:var(--node-visited-b-color)} }
+        @keyframes pathAnimation { 0%{transform:scale(.6); background-color:var(--node-finish-color)} 100%{transform:scale(1); background-color:var(--node-path-color)} }
+        @keyframes growWall { 0%{transform:scale(.7)} 100%{transform:scale(1)} }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- ===== MAIN MENU ===== -->
+        <div id="main-menu">
+            <h1>Siêu Công Cụ Mô Phỏng Giải Thuật</h1>
+            <p>Chọn một danh mục để bắt đầu</p>
+            <div class="menu-buttons">
+                <button id="show-sorting-btn">Thuật toán Sắp xếp</button>
+                <button id="show-pathfinding-btn">Thuật toán Tìm đường</button>
+            </div>
+        </div>
+
+        <!-- ===== PATHFINDING VISUALIZER ===== -->
+        <div id="pathfinding-visualizer" class="visualizer-container">
+            <header style="text-align:center; margin-bottom:15px;">
+                <h1>Trình Mô Phỏng Giải Thuật Tìm Đường</h1>
+                <p>Nhấn giữ chuột để vẽ tường. Kéo thả nút Xanh (Start) và Đỏ (Finish).</p>
+            </header>
+            <nav class="controls">
+                <button class="back-to-menu-btn">&larr; Quay lại Menu</button>
+                <div class="control-group">
+                    <label for="pf-algorithm-select">Chọn Giải Thuật</label>
+                    <select id="pf-algorithm-select">
+                        <option value="astar">A* Search</option>
+                        <option value="dijkstra">Dijkstra</option>
+                        <option value="bfs">Breadth-First (BFS)</option>
+                        <option value="dfs">Depth-First (DFS)</option>
+                        <option value="greedy">Greedy Best-first</option>
+                        <option value="bidirectional">Bidirectional Search</option>
+                    </select>
+                </div>
+                <button class="visualize-btn" id="pf-visualize-btn">Mô phỏng!</button>
+                <button id="pf-clear-walls-btn">Xóa Tường</button>
+                <button id="pf-clear-board-btn">Làm Mới Bảng</button>
+            </nav>
+            <div id="algo-info"></div>
+            <main id="grid-container"></main>
+        </div>
+
+        <!-- ===== SORTING VISUALIZER ===== -->
+        <div id="sorting-visualizer" class="visualizer-container">
+            <header style="text-align:center; margin-bottom:15px;">
+                 <h1>Trình Mô Phỏng Giải Thuật Sắp Xếp</h1>
+            </header>
+            <nav class="controls">
+                <button class="back-to-menu-btn">&larr; Quay lại Menu</button>
+                <button id="generate-array-btn">Tạo Mảng Mới</button>
+                <div class="control-group">
+                    <label for="algorithm-select">Chọn Giải Thuật</label>
+                    <select id="algorithm-select">
+                        <option value="bubbleSort">Bubble Sort</option>
+                        <option value="selectionSort">Selection Sort</option>
+                        <option value="insertionSort">Insertion Sort</option>
+                        <option value="mergeSort">Merge Sort</option>
+                        <option value="quickSort">Quick Sort</option>
+                        <option value="heapSort">Heap Sort</option>
+                        <option value="shellSort">Shell Sort</option>
+                        <option value="radixSort">Radix Sort</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="array-size-slider">Số Lượng: <span id="array-size-label">50</span></label>
+                    <input type="range" id="array-size-slider" min="10" max="150" value="50">
+                </div>
+                <div class="control-group">
+                    <label for="speed-slider">Tốc Độ</label>
+                    <input type="range" id="speed-slider" min="5" max="200" value="50">
+                </div>
+                <button class="visualize-btn" id="sort-btn">Sắp Xếp</button>
+            </nav>
+            <main id="sorting-visualization-container"></main>
+        </div>
+    </div>
+
+<script>
+// Global navigation logic
+const mainMenu = document.getElementById('main-menu');
+const sortingVisualizer = document.getElementById('sorting-visualizer');
+const pathfindingVisualizer = document.getElementById('pathfinding-visualizer');
+const showSortingBtn = document.getElementById('show-sorting-btn');
+const showPathfindingBtn = document.getElementById('show-pathfinding-btn');
+const backToMenuBtns = document.querySelectorAll('.back-to-menu-btn');
+
+showSortingBtn.addEventListener('click', () => {
+    mainMenu.style.display = 'none';
+    sortingVisualizer.style.display = 'block';
+    window.dispatchEvent(new CustomEvent('sorting-load'));
+});
+
+showPathfindingBtn.addEventListener('click', () => {
+    mainMenu.style.display = 'none';
+    pathfindingVisualizer.style.display = 'block';
+    window.dispatchEvent(new CustomEvent('pathfinding-load'));
+});
+
+backToMenuBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        window.location.reload(); 
+    });
+});
+
+
+// ===================================
+// ===== PATHFINDING SCRIPT PART =====
+// ===================================
+(function() {
+    const GRID_WIDTH = 50, GRID_HEIGHT = 20;
+    let START_NODE_ROW = 10, START_NODE_COL = 10;
+    let FINISH_NODE_ROW = 10, FINISH_NODE_COL = 40;
+
+    const gridContainer = document.getElementById('grid-container');
+    const visualizeBtn = document.getElementById('pf-visualize-btn');
+    const clearWallsBtn = document.getElementById('pf-clear-walls-btn');
+    const clearBoardBtn = document.getElementById('pf-clear-board-btn');
+    const algorithmSelect = document.getElementById('pf-algorithm-select');
+    const algoInfoDiv = document.getElementById('algo-info');
+    
+    let grid = [], mouseIsPressed = false, isRunning = false, movingNode = null;
+    
+    const ALGO_INFO = {
+        'dijkstra': 'Dijkstra: Đảm bảo đường đi ngắn nhất. Khám phá mọi hướng.',
+        'astar': 'A* Search: Đảm bảo đường đi ngắn nhất. Ưu tiên hướng về đích.',
+        'greedy': 'Greedy Best-first: Không đảm bảo ngắn nhất. Rất nhanh, luôn đi về phía đích.',
+        'bfs': 'Breadth-First Search: Đảm bảo đường đi ngắn nhất. Khám phá theo từng lớp.',
+        'dfs': 'Depth-First Search: Không đảm bảo ngắn nhất. Khám phá sâu vào một nhánh.',
+        'bidirectional': 'Bidirectional Search (BFS): Tìm kiếm từ 2 phía. Rất hiệu quả.'
+    };
+
+    class Node {
+        constructor(row, col) {
+            this.row = row; this.col = col; this.isStart = false; this.isFinish = false;
+            this.distance = Infinity; this.isVisited = false; this.isWall = false;
+            this.previousNode = null; this.gScore = Infinity; this.fScore = Infinity;
+            this.hScore = 0; this.isVisitedB = false; this.previousNodeB = null;
+            this.element = document.createElement('div');
+            this.element.className = 'node';
+            this.element.id = `node-${row}-${col}`;
+            this.element.addEventListener('mousedown', () => this.handleMouseDown());
+            this.element.addEventListener('mouseenter', () => this.handleMouseEnter());
+            this.element.addEventListener('mouseup', () => handleMouseUp());
+        }
+        reset() {
+            this.isVisited = false; this.distance = Infinity; this.previousNode = null;
+            this.gScore = Infinity; this.fScore = Infinity; this.hScore = 0;
+            this.isVisitedB = false; this.previousNodeB = null;
+            this.element.classList.remove('node-visited', 'node-shortest-path', 'node-visited-b');
+        }
+        handleMouseDown() {
+            if (isRunning) return;
+            if (this.isStart) movingNode = 'start';
+            else if (this.isFinish) movingNode = 'finish';
+            else this.toggleWall();
+            mouseIsPressed = true;
+        }
+        handleMouseEnter() {
+            if (!mouseIsPressed || isRunning) return;
+            if (movingNode) moveSpecialNode(this);
+            else this.toggleWall();
+        }
+        toggleWall() {
+            if (this.isStart || this.isFinish) return;
+            this.isWall = !this.isWall;
+            this.element.classList.toggle('node-wall', this.isWall);
+        }
+    }
+
+    function initializeGrid() {
+        gridContainer.innerHTML = ''; grid = [];
+        gridContainer.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, 25px)`;
+        for (let r = 0; r < GRID_HEIGHT; r++) {
+            const row = [];
+            for (let c = 0; c < GRID_WIDTH; c++) {
+                const node = new Node(r, c);
+                row.push(node);
+                gridContainer.appendChild(node.element);
+            }
+            grid.push(row);
+        }
+        setSpecialNode('start', START_NODE_ROW, START_NODE_COL);
+        setSpecialNode('finish', FINISH_NODE_ROW, FINISH_NODE_COL);
+    }
+
+    function handleMouseUp() { mouseIsPressed = false; movingNode = null; }
+
+    function moveSpecialNode(newNode) {
+        const isStart = movingNode === 'start';
+        const oldRow = isStart ? START_NODE_ROW : FINISH_NODE_ROW, oldCol = isStart ? START_NODE_COL : FINISH_NODE_COL;
+        if (newNode.row === oldRow && newNode.col === oldCol || newNode.isWall || (isStart && newNode.isFinish) || (!isStart && newNode.isStart)) return;
+        clearSpecialNode(movingNode, oldRow, oldCol);
+        if (isStart) { START_NODE_ROW = newNode.row; START_NODE_COL = newNode.col; } 
+        else { FINISH_NODE_ROW = newNode.row; FINISH_NODE_COL = newNode.col; }
+        setSpecialNode(movingNode, newNode.row, newNode.col);
+    }
+    
+    function setSpecialNode(type, r, c) { grid[r][c][`is${type.charAt(0).toUpperCase() + type.slice(1)}`] = true; grid[r][c].element.classList.add(`node-${type}`); }
+    function clearSpecialNode(type, r, c) { grid[r][c][`is${type.charAt(0).toUpperCase() + type.slice(1)}`] = false; grid[r][c].element.classList.remove(`node-${type}`); }
+
+    function clearBoard(clearWallsOnly = false) {
+        for (let row of grid) for (let node of row) {
+            node.reset();
+            if (clearWallsOnly || (!node.isStart && !node.isFinish)) {
+                node.element.classList.remove('node-wall');
+                node.isWall = false;
+            }
+        }
+    }
+
+    function setAlgoInfo() { algoInfoDiv.textContent = ALGO_INFO[algorithmSelect.value]; }
+
+    visualizeBtn.addEventListener('click', () => { if (!isRunning) { clearBoard(true); visualizeAlgorithm(); } });
+    clearWallsBtn.addEventListener('click', () => !isRunning && clearBoard(true));
+    clearBoardBtn.addEventListener('click', () => !isRunning && initializeGrid());
+    algorithmSelect.addEventListener('change', setAlgoInfo);
+    
+    function setControls(enabled) {
+        visualizeBtn.disabled = !enabled; clearWallsBtn.disabled = !enabled;
+        clearBoardBtn.disabled = !enabled; algorithmSelect.disabled = !enabled;
+    }
+
+    async function visualizeAlgorithm() {
+        isRunning = true; setControls(false);
+        const startNode = grid[START_NODE_ROW][START_NODE_COL], finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL], algo = algorithmSelect.value;
+        let visited = [], path = [];
+        switch (algo) {
+            case 'dijkstra': visited = dijkstra(startNode, finishNode); break;
+            case 'astar': visited = aStar(startNode, finishNode); break;
+            case 'greedy': visited = greedyBFS(startNode, finishNode); break;
+            case 'bfs': visited = bfs(startNode, finishNode); break;
+            case 'dfs': visited = dfs(startNode, finishNode); break;
+            case 'bidirectional': await visualizeBidirectional(startNode, finishNode); isRunning = false; setControls(true); return;
+        }
+        path = getPath(finishNode);
+        await animate(visited, path);
+        isRunning = false; setControls(true);
+    }
+    
+    async function animate(visited, path, isBi = false, pathB = []) {
+        for (let i = 0; i < visited.length; i++) {
+            await new Promise(r => setTimeout(r, 10));
+            if (isBi) {
+                if (visited[i].from === 'start') visited[i].node.element.classList.add('node-visited');
+                else visited[i].node.element.classList.add('node-visited-b');
+            } else if (!visited[i].isStart && !visited[i].isFinish) visited[i].element.classList.add('node-visited');
+        }
+        await animatePath(path);
+        if (isBi) await animatePath(pathB);
+    }
+
+    async function animatePath(path) {
+        for (let i = 0; i < path.length; i++) {
+            await new Promise(r => setTimeout(r, 40));
+            const node = path[i];
+            if (!node.isStart && !node.isFinish) {
+                node.element.classList.remove('node-visited', 'node-visited-b');
+                node.element.classList.add('node-shortest-path');
+            }
+        }
+    }
+    
+    function getPath(finishNode) {
+        const path = []; let curr = finishNode;
+        if (curr.previousNode === null && !curr.isStart) return [];
+        while (curr !== null) { path.unshift(curr); curr = curr.previousNode; }
+        return path;
+    }
+    
+    function getNeighbors(node) {
+        const neighbors = [], { col, row } = node;
+        if (row > 0) neighbors.push(grid[row - 1][col]);
+        if (row < GRID_HEIGHT - 1) neighbors.push(grid[row + 1][col]);
+        if (col > 0) neighbors.push(grid[row][col - 1]);
+        if (col < GRID_WIDTH - 1) neighbors.push(grid[row][col + 1]);
+        return neighbors.filter(n => !n.isWall);
+    }
+
+    function heuristic(a, b) { return Math.abs(a.row - b.row) + Math.abs(a.col - b.col); }
+    function getAllNodes() { return grid.flat(); }
+    
+    function dijkstra(start, finish) {
+        const visited = []; start.distance = 0; const unvisited = getAllNodes();
+        while (unvisited.length) {
+            unvisited.sort((a, b) => a.distance - b.distance);
+            const closest = unvisited.shift();
+            if (closest.isWall) continue;
+            if (closest.distance === Infinity) return visited;
+            closest.isVisited = true; visited.push(closest);
+            if (closest === finish) return visited;
+            const neighbors = getNeighbors(closest);
+            for (const neighbor of neighbors) if (!neighbor.isVisited) {
+                neighbor.distance = closest.distance + 1;
+                neighbor.previousNode = closest;
+            }
+        }
+        return visited;
+    }
+
+    function aStar(start, finish) {
+        const visited = [], openSet = [start];
+        start.gScore = 0; start.hScore = heuristic(start, finish); start.fScore = start.hScore;
+        while (openSet.length) {
+            openSet.sort((a, b) => a.fScore - b.fScore);
+            const current = openSet.shift();
+            if (current === finish) return visited;
+            current.isVisited = true; visited.push(current);
+            const neighbors = getNeighbors(current);
+            for (const neighbor of neighbors) {
+                if (neighbor.isVisited) continue;
+                const tentG = current.gScore + 1;
+                if (tentG < neighbor.gScore) {
+                    neighbor.previousNode = current; neighbor.gScore = tentG;
+                    neighbor.hScore = heuristic(neighbor, finish);
+                    neighbor.fScore = neighbor.gScore + neighbor.hScore;
+                    if (!openSet.includes(neighbor)) openSet.push(neighbor);
+                }
+            }
+        }
+        return visited;
+    }
+
+    function greedyBFS(start, finish) {
+        const visited = [], openSet = [start]; start.distance = heuristic(start, finish);
+        while(openSet.length){
+            openSet.sort((a,b) => a.distance - b.distance);
+            const current = openSet.shift();
+            if(current.isWall || current.isVisited) continue;
+            current.isVisited = true; visited.push(current);
+            if(current === finish) return visited;
+            const neighbors = getNeighbors(current);
+            for(const neighbor of neighbors) if(!neighbor.isVisited){
+                neighbor.distance = heuristic(neighbor, finish);
+                neighbor.previousNode = current;
+                openSet.push(neighbor);
+            }
+        }
+        return visited;
+    }
+    
+    function bfs(start, finish) {
+        const visited = [], queue = [start]; start.isVisited = true;
+        while (queue.length) {
+            const current = queue.shift(); visited.push(current);
+            if (current === finish) return visited;
+            const neighbors = getNeighbors(current);
+            for (const neighbor of neighbors) if (!neighbor.isVisited) {
+                neighbor.isVisited = true; neighbor.previousNode = current;
+                queue.push(neighbor);
+            }
+        }
+        return visited;
+    }
+    
+    function dfs(start, finish) {
+        const visited = [], stack = [start];
+        while(stack.length) {
+            const current = stack.pop();
+            if(current.isWall || current.isVisited) continue;
+            current.isVisited = true; visited.push(current);
+            if (current === finish) return visited;
+            const neighbors = getNeighbors(current);
+            for(const neighbor of neighbors) if(!neighbor.isVisited) {
+                neighbor.previousNode = current;
+                stack.push(neighbor);
+            }
+        }
+        return visited;
+    }
+
+    async function visualizeBidirectional(start, finish) {
+        const qS = [start], qF = [finish];
+        const visited = [];
+        start.isVisited = true; finish.isVisitedB = true;
+        let meetingNode = null;
+
+        while (qS.length && qF.length) {
+            const nodeS = qS.shift(); visited.push({node: nodeS, from: 'start'});
+            if (nodeS.isVisitedB) { meetingNode = nodeS; break; }
+            const neighborsS = getNeighbors(nodeS);
+            for (const neighbor of neighborsS) if (!neighbor.isVisited) {
+                neighbor.isVisited = true; neighbor.previousNode = nodeS; qS.push(neighbor);
+            }
+
+            const nodeF = qF.shift(); visited.push({node: nodeF, from: 'finish'});
+            if (nodeF.isVisited) { meetingNode = nodeF; break; }
+            const neighborsF = getNeighbors(nodeF);
+            for (const neighbor of neighborsF) if (!neighbor.isVisitedB) {
+                neighbor.isVisitedB = true; neighbor.previousNodeB = nodeF; qF.push(neighbor);
+            }
+            await new Promise(r => setTimeout(r, 10));
+        }
+
+        let pathS = [], pathF = [];
+        if (meetingNode) {
+            let currS = meetingNode;
+            while(currS !== null) { pathS.unshift(currS); currS = currS.previousNode; }
+            let currF = meetingNode;
+            while(currF !== null) { pathF.push(currF); currF = currF.previousNodeB; }
+        }
+        await animate(visited, pathS, true, pathF);
+    }
+    
+    window.addEventListener('pathfinding-load', () => { initializeGrid(); setAlgoInfo(); });
+})();
+
+
+// ===============================
+// ===== SORTING SCRIPT PART =====
+// ===============================
+(function() {
+    const container = document.getElementById('sorting-visualization-container');
+    const generateBtn = document.getElementById('generate-array-btn');
+    const sortBtn = document.getElementById('sort-btn');
+    const algoSelect = document.getElementById('algorithm-select');
+    const sizeSlider = document.getElementById('array-size-slider');
+    const speedSlider = document.getElementById('speed-slider');
+    const sizeLabel = document.getElementById('array-size-label');
+
+    let array = [], arraySize = 50, speed = 155;
+    
+    function setControls(enabled) {
+        generateBtn.disabled = !enabled; sortBtn.disabled = !enabled;
+        algoSelect.disabled = !enabled; sizeSlider.disabled = !enabled;
+    }
+
+    function sleep() { return new Promise(resolve => setTimeout(resolve, speed)); }
+
+    function generateNewArray() {
+        array = [];
+        for (let i = 0; i < arraySize; i++) {
+            array.push(Math.floor(Math.random() * (container.clientHeight * 0.9 - 20)) + 10);
+        }
+        renderBars(array);
+    }
+
+    function renderBars(arr, colors = {}) {
+        container.innerHTML = '';
+        const barWidth = Math.max(1, Math.floor(container.clientWidth / (arr.length * 1.5)));
+        for (let i = 0; i < arr.length; i++) {
+            const barContainer = document.createElement('div');
+            barContainer.className = 'bar-container';
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = `${arr[i]}px`;
+            bar.style.width = `${barWidth}px`;
+            bar.style.backgroundColor = colors[i] ? `var(${colors[i]})` : 'var(--bar-default-color)';
+            barContainer.appendChild(bar);
+            if (arraySize <= 50) {
+                const label = document.createElement('span');
+                label.className = 'bar-label';
+                label.textContent = arr[i];
+                barContainer.appendChild(label);
+            }
+            container.appendChild(barContainer);
+        }
+    }
+    
+    async function startSort() {
+        setControls(false);
+        const algo = algoSelect.value;
+        switch (algo) {
+            case 'bubbleSort': await bubbleSort(); break;
+            case 'selectionSort': await selectionSort(); break;
+            case 'insertionSort': await insertionSort(); break;
+            case 'mergeSort': await mergeSortWrapper(); break;
+            case 'quickSort': await quickSortWrapper(); break;
+            case 'heapSort': await heapSort(); break;
+            case 'shellSort': await shellSort(); break;
+            case 'radixSort': await radixSort(); break;
+        }
+        for (let i = 0; i < array.length; i++) {
+            renderBars(array, { [i]: '--bar-sorted-color' });
+            await new Promise(r => setTimeout(r, 5));
+        }
+        const finalColors = {};
+        for(let i=0; i<array.length; i++) finalColors[i] = '--bar-sorted-color';
+        renderBars(array, finalColors);
+        setControls(true);
+    }
+    
+    async function bubbleSort() {
+        for (let i = 0; i < array.length - 1; i++) {
+            for (let j = 0; j < array.length - i - 1; j++) {
+                if (array[j] > array[j + 1]) {
+                    [array[j], array[j + 1]] = [array[j + 1], array[j]];
+                    renderBars(array, { [j]: '--bar-swap-color', [j + 1]: '--bar-swap-color' });
+                    await sleep();
+                } else {
+                    renderBars(array, { [j]: '--bar-compare-color', [j + 1]: '--bar-compare-color' });
+                    await sleep();
+                }
+            }
+        }
+    }
+
+    async function selectionSort() {
+        for (let i = 0; i < array.length - 1; i++) {
+            let minIdx = i;
+            for (let j = i + 1; j < array.length; j++) {
+                renderBars(array, { [i]: '--bar-pivot-color', [j]: '--bar-compare-color', [minIdx]: '--bar-swap-color' });
+                await sleep();
+                if (array[j] < array[minIdx]) {
+                    minIdx = j;
+                }
+            }
+            [array[i], array[minIdx]] = [array[minIdx], array[i]];
+        }
+    }
+
+    async function insertionSort() {
+        for (let i = 1; i < array.length; i++) {
+            let key = array[i], j = i - 1;
+            while (j >= 0 && array[j] > key) {
+                array[j + 1] = array[j];
+                renderBars(array, { [j]: '--bar-compare-color', [j + 1]: '--bar-swap-color' });
+                await sleep();
+                j = j - 1;
+            }
+            array[j + 1] = key;
+        }
+    }
+    
+    async function mergeSortWrapper() { await mergeSort(0, array.length - 1); }
+    async function mergeSort(l, r) {
+        if (l >= r) return;
+        const m = l + Math.floor((r - l) / 2);
+        await mergeSort(l, m);
+        await mergeSort(m + 1, r);
+        await merge(l, m, r);
+    }
+    async function merge(l, m, r) {
+        let n1 = m - l + 1, n2 = r - m;
+        let L = new Array(n1), R = new Array(n2);
+        for (let i = 0; i < n1; i++) L[i] = array[l + i];
+        for (let j = 0; j < n2; j++) R[j] = array[m + 1 + j];
+        let i = 0, j = 0, k = l;
+        while (i < n1 && j < n2) {
+            renderBars(array, { [l+i]: '--bar-compare-color', [m+1+j]: '--bar-compare-color' });
+            await sleep();
+            if (L[i] <= R[j]) { array[k] = L[i]; i++; } 
+            else { array[k] = R[j]; j++; }
+            k++;
+        }
+        while (i < n1) { array[k] = L[i]; i++; k++; }
+        while (j < n2) { array[k] = R[j]; j++; k++; }
+    }
+    
+    async function quickSortWrapper() { await quickSort(0, array.length - 1); }
+    async function quickSort(low, high) {
+        if (low < high) {
+            let pi = await partition(low, high);
+            await quickSort(low, pi - 1);
+            await quickSort(pi + 1, high);
+        }
+    }
+    async function partition(low, high) {
+        let pivot = array[high], i = low - 1;
+        for (let j = low; j <= high - 1; j++) {
+            renderBars(array, { [j]: '--bar-compare-color', [high]: '--bar-pivot-color' });
+            await sleep();
+            if (array[j] < pivot) {
+                i++;
+                [array[i], array[j]] = [array[j], array[i]];
+                renderBars(array, { [i]: '--bar-swap-color', [j]: '--bar-swap-color' });
+                await sleep();
+            }
+        }
+        [array[i + 1], array[high]] = [array[high], array[i + 1]];
+        return i + 1;
+    }
+
+    async function heapSort() {
+        let n = array.length;
+        for (let i = Math.floor(n / 2) - 1; i >= 0; i--) await heapify(n, i);
+        for (let i = n - 1; i > 0; i--) {
+            [array[0], array[i]] = [array[i], array[0]];
+            renderBars(array, { [0]: '--bar-swap-color', [i]: '--bar-swap-color' });
+            await sleep();
+            await heapify(i, 0);
+        }
+    }
+    async function heapify(n, i) {
+        let largest = i, l = 2 * i + 1, r = 2 * i + 2;
+        if (l < n && array[l] > array[largest]) largest = l;
+        if (r < n && array[r] > array[largest]) largest = r;
+        if (largest !== i) {
+            renderBars(array, { [i]: '--bar-compare-color', [largest]: '--bar-compare-color' });
+            await sleep();
+            [array[i], array[largest]] = [array[largest], array[i]];
+            await heapify(n, largest);
+        }
+    }
+    
+    async function shellSort() {
+        let n = array.length;
+        for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+            for (let i = gap; i < n; i += 1) {
+                let temp = array[i], j;
+                for (j = i; j >= gap && array[j - gap] > temp; j -= gap) {
+                    array[j] = array[j - gap];
+                    renderBars(array, { [j]: '--bar-swap-color', [j-gap]: '--bar-compare-color' });
+                    await sleep();
+                }
+                array[j] = temp;
+            }
+        }
+    }
+
+    async function radixSort() {
+        const getMax = () => Math.max(...array);
+        const m = getMax();
+        for (let exp = 1; Math.floor(m / exp) > 0; exp *= 10) {
+            await countSort(exp);
+        }
+    }
+    async function countSort(exp) {
+        let output = new Array(array.length).fill(0);
+        let count = new Array(10).fill(0);
+        for (let i = 0; i < array.length; i++) count[Math.floor(array[i] / exp) % 10]++;
+        for (let i = 1; i < 10; i++) count[i] += count[i - 1];
+        for (let i = array.length - 1; i >= 0; i--) {
+            output[count[Math.floor(array[i] / exp) % 10] - 1] = array[i];
+            count[Math.floor(array[i] / exp) % 10]--;
+        }
+        for (let i = 0; i < array.length; i++) {
+            array[i] = output[i];
+            renderBars(array, { [i]: '--bar-swap-color' });
+            await sleep();
+        }
+    }
+
+
+    sizeSlider.addEventListener('input', e => { arraySize = parseInt(e.target.value); sizeLabel.textContent = arraySize; generateNewArray(); });
+    speedSlider.addEventListener('input', e => { speed = 205 - parseInt(e.target.value); });
+    generateBtn.addEventListener('click', generateNewArray);
+    sortBtn.addEventListener('click', startSort);
+    
+    window.addEventListener('sorting-load', generateNewArray);
+})();
+</script>
+</body>
+</html>
+
