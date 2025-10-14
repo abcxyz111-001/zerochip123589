@@ -3,33 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siêu Công Cụ Mô Phỏng Giải Thuật</title>
+    <title>Công Cụ Mô Phỏng Giải Thuật</title>
     <style>
         :root {
-            --bg-color: #2c3e50;
-            --container-bg-color: #34495e;
-            --text-color: #ecf0f1;
-            --button-color: #3498db;
-            --button-hover-color: #2980b9;
-            --button-action-color: #e74c3c;
-            --button-action-hover-color: #c0392b;
-            --shadow-color: rgba(0, 0, 0, 0.2);
+            /* MODIFIED: New Gentle Color Palette */
+            --bg-color: #fce4ec; /* Light Pink */
+            --container-bg-color: #f8bbd0; /* Darker Pink */
+            --text-color: #424242; /* Dark Gray for readability */
+            
+            --button-color: #81d4fa; /* Sky Blue */
+            --button-hover-color: #4fc3f7; /* Darker Sky Blue */
+            --button-gradient-start: #b3e5fc; /* Lighter Sky Blue */
+            --button-border-color: #29b6f6; /* Border Sky Blue */
+
+            --button-action-color: #ff80ab; /* Bright Pink */
+            --button-action-hover-color: #f50057; /* Darker Bright Pink */
+            --button-action-gradient-start: #ffb2dd; /* Lighter Bright Pink */
+            --button-action-border-color: #f50057;
+
+            --shadow-color: rgba(0, 0, 0, 0.1);
 
             /* Pathfinding Colors */
-            --node-border-color: rgba(46, 204, 113, 0.2);
-            --node-start-color: #2ecc71;
-            --node-finish-color: #e74c3c;
-            --node-wall-color: #7f8c8d;
-            --node-visited-color: rgba(52, 152, 219, 0.75);
-            --node-visited-b-color: rgba(241, 196, 15, 0.75); /* For bidirectional */
-            --node-path-color: #f1c40f;
+            --node-border-color: rgba(165, 214, 167, 0.5);
+            --node-start-color: #a5d6a7; /* Gentle Green */
+            --node-finish-color: #ff80ab; /* Action Pink */
+            --node-wall-color: #e0e0e0; /* Soft Gray */
+            --node-visited-color: rgba(129, 212, 250, 0.75); /* Sky Blue */
+            --node-visited-b-color: rgba(255, 245, 157, 0.75); /* Gentle Yellow */
+            --node-path-color: #fff59d;
 
             /* Sorting Colors */
-            --bar-default-color: #3498db;
-            --bar-compare-color: #f1c40f;
-            --bar-swap-color: #e74c3c;
-            --bar-sorted-color: #2ecc71;
-            --bar-pivot-color: #9b59b6;
+            --bar-default-color: #81d4fa; /* Sky Blue */
+            --bar-compare-color: #fff59d; /* Gentle Yellow */
+            --bar-swap-color: #ff80ab; /* Action Pink */
+            --bar-sorted-color: #a5d6a7; /* Gentle Green */
+            --bar-pivot-color: #ce93d8; /* Gentle Purple */
         }
 
         body {
@@ -41,26 +49,37 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 10px 0;
         }
         
         h1, h2 { margin: 0 0 10px 0; }
-        p { margin: 5px 0 0 0; color: #bdc3c7; }
+        p { margin: 5px 0 0 0; color: #757575; }
 
         .app-container {
             width: 98%;
             max-width: 1400px;
             padding: 20px;
+            position: relative;
         }
         
         #main-menu { text-align: center; }
         #main-menu h1 { font-size: 2.5em; }
-        .menu-buttons { display: flex; justify-content: center; gap: 30px; margin-top: 30px; }
-        .menu-buttons button { font-size: 1.5em; padding: 20px 40px; }
+        .menu-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-top: 30px; }
+        .menu-buttons button { font-size: 1.2em; padding: 20px 40px; }
 
-        .visualizer-container { display: none; }
+        .visualizer-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .visualizer-container.visible {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.4s ease-in-out;
+        }
         
         .controls {
-            background-color: var(--container-bg-color);
+            background-color: white;
             padding: 15px;
             border-radius: 8px;
             display: flex;
@@ -69,33 +88,185 @@
             align-items: center;
             gap: 15px;
             margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .control-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .control-group { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            gap: 10px; 
+        }
         
-        #algo-info { text-align: center; margin-bottom: 15px; font-style: italic; color: #bdc3c7; min-height: 20px; }
+        #algo-info { text-align: center; margin-bottom: 15px; font-style: italic; color: #757575; min-height: 20px; }
 
-        button, select {
+        /* --- Unified Button and Custom Select Styles --- */
+        button, .custom-select-trigger {
             padding: 10px 18px;
-            border-radius: 5px;
-            border: none;
-            background-color: var(--button-color);
+            border-radius: 8px;
+            border: 1px solid var(--button-border-color);
+            background-image: linear-gradient(to bottom, var(--button-gradient-start), var(--button-color));
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px var(--shadow-color);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px var(--shadow-color), inset 0 1px 0 rgba(255,255,255,0.2);
+            position: relative;
+            vertical-align: middle;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
         }
         
-        button:hover, select:hover { background-color: var(--button-hover-color); box-shadow: 0 6px 8px var(--shadow-color); }
-        button:active, select:active { box-shadow: 0 2px 4px var(--shadow-color); transform: translateY(1px); }
-        .visualize-btn { background-color: var(--button-action-color); }
-        .visualize-btn:hover { background-color: var(--button-action-hover-color); }
-        button:disabled, select:disabled { background-color: #95a5a6; cursor: not-allowed; box-shadow: none; }
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 180px;
+        }
+
+        button:hover, .custom-select-trigger:hover {
+            background-image: linear-gradient(to bottom, var(--button-gradient-start), var(--button-hover-color));
+            box-shadow: 0 6px 8px var(--shadow-color), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        button:active, .custom-select-trigger:active {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+        button:active {
+            transform: translateY(2px);
+        }
+
+        .visualize-btn {
+            background-image: linear-gradient(to bottom, var(--button-action-gradient-start), var(--button-action-color));
+            border-color: var(--button-action-border-color);
+        }
+        .visualize-btn:hover {
+            background-image: linear-gradient(to bottom, var(--button-action-gradient-start), var(--button-action-hover-color));
+        }
         
+        button:disabled, .custom-select-trigger.disabled {
+            background-image: none;
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            box-shadow: none;
+            border-color: #bdbdbd;
+        }
+        
+        /* --- Custom Select Dropdown --- */
+        .custom-select-container {
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .custom-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background-color: white;
+            border: 1px solid var(--button-border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 5px; /* Added padding for options */
+            
+            opacity: 0;
+            visibility: hidden;
+            transform-origin: top center;
+            transform: translateY(-10px) scale(0.98);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+        }
+
+        .custom-options.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .custom-option {
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            color: var(--text-color);
+            border-radius: 6px; /* MODIFIED: Rounded corners for each option */
+        }
+
+        .custom-option:hover {
+            background-color: var(--button-hover-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .custom-option.selected {
+            background-color: var(--button-color);
+            color: white;
+        }
+        
+        /* --- Language Button --- */
+        #language-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        /* --- Language Modal --- */
+        #language-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
+            z-index: 1000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+        }
+        #language-overlay.visible { opacity: 1; visibility: visible; }
+        .language-modal {
+            background-color: white; padding: 30px;
+            border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center; transform: scale(0.9); transition: transform 0.3s;
+        }
+        #language-overlay.visible .language-modal { transform: scale(1); }
+        .language-modal h2 { margin-top: 0; }
+        .language-modal .lang-options { display: flex; gap: 20px; margin-top: 20px; }
+
+        /* --- Custom Toggle Switch --- */
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #bdbdbd; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--button-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
         /* --- Pathfinding Specific Styles --- */
-        #grid-container { display: grid; border: 1px solid var(--node-start-color); margin: 0 auto; }
-        .node { width: 25px; height: 25px; outline: 1px solid var(--node-border-color); }
+        .pathfinding-content-wrapper {
+             max-width: 1052px; /* 42 nodes * 25px + 2px border */
+             margin: 0 auto;
+        }
+
+        #grid-container { display: grid; border: 1px solid var(--node-start-color); touch-action: none; background-color: white; }
+        .node { 
+            width: 25px; height: 25px; 
+            outline: 1px solid var(--node-border-color);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .node-info { font-size: 9px; color: black; font-weight: bold; pointer-events: none; display: none; }
+        #grid-container.show-numbers .node-info { display: block; }
         .node-start { background-color: var(--node-start-color); }
         .node-finish { background-color: var(--node-finish-color); }
         .node-wall { background-color: var(--node-wall-color); animation: growWall 0.3s; }
@@ -105,35 +276,17 @@
 
         /* --- Sorting Specific Styles --- */
         #sorting-visualization-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end; /* Align containers to the bottom */
-            min-height: 450px;
-            background-color: var(--container-bg-color);
-            padding: 10px;
-            border-radius: 8px;
-            overflow: hidden;
+            display: flex; justify-content: center; align-items: flex-end; min-height: 450px;
+            background-color: white; padding: 10px; border-radius: 8px; overflow: hidden;
         }
-        .bar-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0 1px;
-        }
-        .bar { 
-            display: inline-block; 
-            background-color: var(--bar-default-color);
-            transition: height 0.2s, background-color 0.2s; 
-        }
-        .bar-label {
-            font-size: 10px;
-            color: var(--text-color);
-            margin-top: 5px;
-        }
+        .bar-container { display: flex; flex-direction: column; align-items: center; margin: 0 1px; }
+        .bar { display: inline-block; background-color: var(--bar-default-color); transition: height 0.2s, background-color 0.2s; }
+        .bar-label { font-size: 10px; color: var(--text-color); margin-top: 5px; }
 
         /* --- Animations --- */
-        @keyframes visitedAnimation { 0%{transform:scale(.3); background-color:#1abc9c; border-radius:100%} 50%{background-color:var(--node-visited-color)} 75%{transform:scale(1.2)} 100%{transform:scale(1); background-color:var(--node-visited-color)} }
-        @keyframes visitedAnimationB { 0%{transform:scale(.3); background-color:#1abc9c; border-radius:100%} 50%{background-color:var(--node-visited-b-color)} 75%{transform:scale(1.2)} 100%{transform:scale(1); background-color:var(--node-visited-b-color)} }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes visitedAnimation { 0%{transform:scale(.3); background-color:#4dd0e1; border-radius:100%} 50%{background-color:var(--node-visited-color)} 75%{transform:scale(1.2)} 100%{transform:scale(1); background-color:var(--node-visited-color)} }
+        @keyframes visitedAnimationB { 0%{transform:scale(.3); background-color:#4dd0e1; border-radius:100%} 50%{background-color:var(--node-visited-b-color)} 75%{transform:scale(1.2)} 100%{transform:scale(1); background-color:var(--node-visited-b-color)} }
         @keyframes pathAnimation { 0%{transform:scale(.6); background-color:var(--node-finish-color)} 100%{transform:scale(1); background-color:var(--node-path-color)} }
         @keyframes growWall { 0%{transform:scale(.7)} 100%{transform:scale(1)} }
     </style>
@@ -141,79 +294,206 @@
 <body>
 
     <div class="app-container">
+        <!-- ===== LANGUAGE BUTTON ===== -->
+        <button id="language-btn">🌎</button>
+
+        <!-- ===== LANGUAGE MODAL ===== -->
+        <div id="language-overlay">
+            <div class="language-modal">
+                <h2 data-lang-key="select_language">Chọn Ngôn Ngữ</h2>
+                <div class="lang-options">
+                    <button id="lang-vi">Tiếng Việt</button>
+                    <button id="lang-en">English</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== MAIN MENU ===== -->
         <div id="main-menu">
-            <h1>Siêu Công Cụ Mô Phỏng Giải Thuật</h1>
-            <p>Chọn một danh mục để bắt đầu</p>
+            <h1 data-lang-key="main_title">Công Cụ Mô Phỏng Giải Thuật</h1>
+            <p data-lang-key="main_subtitle">Chọn một danh mục để bắt đầu</p>
             <div class="menu-buttons">
-                <button id="show-sorting-btn">Thuật toán Sắp xếp</button>
-                <button id="show-pathfinding-btn">Thuật toán Tìm đường</button>
+                <button id="show-sorting-btn" data-lang-key="sorting_algos">Thuật toán Sắp xếp</button>
+                <button id="show-pathfinding-btn" data-lang-key="pathfinding_algos">Thuật toán Tìm đường</button>
             </div>
         </div>
 
         <!-- ===== PATHFINDING VISUALIZER ===== -->
         <div id="pathfinding-visualizer" class="visualizer-container">
-            <header style="text-align:center; margin-bottom:15px;">
-                <h1>Trình Mô Phỏng Giải Thuật Tìm Đường</h1>
-                <p>Nhấn giữ chuột để vẽ tường. Kéo thả nút Xanh (Start) và Đỏ (Finish).</p>
-            </header>
-            <nav class="controls">
-                <button class="back-to-menu-btn">&larr; Quay lại Menu</button>
-                <div class="control-group">
-                    <label for="pf-algorithm-select">Chọn Giải Thuật</label>
-                    <select id="pf-algorithm-select">
-                        <option value="astar">A* Search</option>
-                        <option value="dijkstra">Dijkstra</option>
-                        <option value="bfs">Breadth-First (BFS)</option>
-                        <option value="dfs">Depth-First (DFS)</option>
-                        <option value="greedy">Greedy Best-first</option>
-                        <option value="bidirectional">Bidirectional Search</option>
-                    </select>
-                </div>
-                <button class="visualize-btn" id="pf-visualize-btn">Mô phỏng!</button>
-                <button id="pf-clear-walls-btn">Xóa Tường</button>
-                <button id="pf-clear-board-btn">Làm Mới Bảng</button>
-            </nav>
-            <div id="algo-info"></div>
-            <main id="grid-container"></main>
+            <div class="pathfinding-content-wrapper">
+                <header style="text-align:center; margin-bottom:15px;">
+                    <h1 data-lang-key="path_title">Trình Mô Phỏng Giải Thuật Tìm Đường</h1>
+                    <p data-lang-key="path_subtitle">Nhấn giữ chuột để vẽ tường. Kéo thả nút Xanh (Start) và Đỏ (Finish).</p>
+                </header>
+                <nav class="controls">
+                    <button class="back-to-menu-btn" data-lang-key="back_to_menu">&larr; Quay lại Menu</button>
+                    <div class="control-group">
+                        <label for="pf-algorithm-select" data-lang-key="select_algo">Chọn Giải Thuật</label>
+                        <div class="select-wrapper">
+                            <select id="pf-algorithm-select">
+                                <option value="astar">A* Search</option>
+                                <option value="dijkstra">Dijkstra</option>
+                                <option value="bfs">Breadth-First (BFS)</option>
+                                <option value="dfs">Depth-First (DFS)</option>
+                                <option value="greedy">Greedy Best-first</option>
+                                <option value="bidirectional">Bidirectional Search</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="visualize-btn" id="pf-visualize-btn" data-lang-key="visualize">Mô phỏng!</button>
+                    <button id="pf-clear-walls-btn" data-lang-key="clear_walls">Xóa Tường</button>
+                    <button id="pf-clear-board-btn" data-lang-key="clear_board">Làm Mới Bảng</button>
+                    <div class="control-group">
+                        <label for="pf-show-numbers-toggle" data-lang-key="show_numbers">Hiện Số</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pf-show-numbers-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </nav>
+                <div id="algo-info"></div>
+                <main id="grid-container"></main>
+            </div>
         </div>
 
         <!-- ===== SORTING VISUALIZER ===== -->
         <div id="sorting-visualizer" class="visualizer-container">
             <header style="text-align:center; margin-bottom:15px;">
-                 <h1>Trình Mô Phỏng Giải Thuật Sắp Xếp</h1>
+                 <h1 data-lang-key="sort_title">Trình Mô Phỏng Giải Thuật Sắp Xếp</h1>
             </header>
             <nav class="controls">
-                <button class="back-to-menu-btn">&larr; Quay lại Menu</button>
-                <button id="generate-array-btn">Tạo Mảng Mới</button>
+                <button class="back-to-menu-btn" data-lang-key="back_to_menu_2">&larr; Quay lại Menu</button>
+                <button id="generate-array-btn" data-lang-key="new_array">Tạo Mảng Mới</button>
                 <div class="control-group">
-                    <label for="algorithm-select">Chọn Giải Thuật</label>
-                    <select id="algorithm-select">
-                        <option value="bubbleSort">Bubble Sort</option>
-                        <option value="selectionSort">Selection Sort</option>
-                        <option value="insertionSort">Insertion Sort</option>
-                        <option value="mergeSort">Merge Sort</option>
-                        <option value="quickSort">Quick Sort</option>
-                        <option value="heapSort">Heap Sort</option>
-                        <option value="shellSort">Shell Sort</option>
-                        <option value="radixSort">Radix Sort</option>
-                    </select>
+                    <label for="algorithm-select" data-lang-key="select_algo_2">Chọn Giải Thuật</label>
+                    <div class="select-wrapper">
+                        <select id="algorithm-select">
+                            <option value="bubbleSort">Bubble Sort</option>
+                            <option value="selectionSort">Selection Sort</option>
+                            <option value="insertionSort">Insertion Sort</option>
+                            <option value="mergeSort">Merge Sort</option>
+                            <option value="quickSort">Quick Sort</option>
+                            <option value="heapSort">Heap Sort</option>
+                            <option value="shellSort">Shell Sort</option>
+                            <option value="radixSort">Radix Sort</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="control-group">
-                    <label for="array-size-slider">Số Lượng: <span id="array-size-label">50</span></label>
+                    <label for="array-size-slider" data-lang-key="size">Số Lượng: <span id="array-size-label">50</span></label>
                     <input type="range" id="array-size-slider" min="10" max="150" value="50">
                 </div>
                 <div class="control-group">
-                    <label for="speed-slider">Tốc Độ</label>
+                    <label for="speed-slider" data-lang-key="speed">Tốc Độ</label>
                     <input type="range" id="speed-slider" min="5" max="200" value="50">
                 </div>
-                <button class="visualize-btn" id="sort-btn">Sắp Xếp</button>
+                <button class="visualize-btn" id="sort-btn" data-lang-key="sort">Sắp Xếp</button>
             </nav>
             <main id="sorting-visualization-container"></main>
         </div>
     </div>
 
 <script>
+// =============================
+// ===== TRANSLATION SCRIPT =====
+// =============================
+const translations = {
+    en: {
+        main_title: "Algorithm Visualization Hub",
+        main_subtitle: "Select a category to begin",
+        sorting_algos: "Sorting Algorithms",
+        pathfinding_algos: "Pathfinding Algorithms",
+        path_title: "Pathfinding Algorithm Visualizer",
+        path_subtitle: "Click and drag to draw walls. Drag and drop the Green (Start) and Red (Finish) nodes.",
+        back_to_menu: "\u2190 Back to Menu",
+        back_to_menu_2: "\u2190 Back to Menu",
+        select_algo: "Select Algorithm",
+        select_algo_2: "Select Algorithm",
+        visualize: "Visualize!",
+        clear_walls: "Clear Walls",
+        clear_board: "Clear Board",
+        show_numbers: "Show Numbers",
+        sort_title: "Sorting Algorithm Visualizer",
+        new_array: "New Array",
+        size: "Size:",
+        speed: "Speed",
+        sort: "Sort",
+        select_language: "Select Language",
+        algo_info_dijkstra: 'Dijkstra: Guarantees the shortest path. Explores in all directions.',
+        algo_info_astar: 'A* Search: Guarantees the shortest path. Prioritizes moving towards the target.',
+        algo_info_greedy: 'Greedy Best-first: Does not guarantee shortest path. Very fast, always moves towards the target.',
+        algo_info_bfs: 'Breadth-First Search: Guarantees the shortest path. Explores layer by layer.',
+        algo_info_dfs: 'Depth-First Search: Does not guarantee shortest path. Explores deep into one branch.',
+        algo_info_bidirectional: 'Bidirectional Search (BFS): Searches from both ends. Very efficient.'
+    },
+    vi: {
+        main_title: "Công Cụ Mô Phỏng Giải Thuật",
+        main_subtitle: "Chọn một danh mục để bắt đầu",
+        sorting_algos: "Thuật toán Sắp xếp",
+        pathfinding_algos: "Thuật toán Tìm đường",
+        path_title: "Trình Mô Phỏng Giải Thuật Tìm Đường",
+        path_subtitle: "Nhấn giữ chuột để vẽ tường. Kéo thả nút Xanh (Start) và Đỏ (Finish).",
+        back_to_menu: "\u2190 Quay lại Menu",
+        back_to_menu_2: "\u2190 Quay lại Menu",
+        select_algo: "Chọn Giải Thuật",
+        select_algo_2: "Chọn Giải Thuật",
+        visualize: "Mô phỏng!",
+        clear_walls: "Xóa Tường",
+        clear_board: "Làm Mới Bảng",
+        show_numbers: "Hiện Số",
+        sort_title: "Trình Mô Phỏng Giải Thuật Sắp Xếp",
+        new_array: "Tạo Mảng Mới",
+        size: "Số Lượng:",
+        speed: "Tốc Độ",
+        sort: "Sắp Xếp",
+        select_language: "Chọn Ngôn Ngữ",
+        algo_info_dijkstra: 'Dijkstra: Đảm bảo đường đi ngắn nhất. Khám phá mọi hướng.',
+        algo_info_astar: 'A* Search: Đảm bảo đường đi ngắn nhất. Ưu tiên hướng về đích.',
+        algo_info_greedy: 'Greedy Best-first: Không đảm bảo ngắn nhất. Rất nhanh, luôn đi về phía đích.',
+        algo_info_bfs: 'Breadth-First Search: Đảm bảo đường đi ngắn nhất. Khám phá theo từng lớp.',
+        algo_info_dfs: 'Depth-First Search: Không đảm bảo ngắn nhất. Khám phá sâu vào một nhánh.',
+        algo_info_bidirectional: 'Bidirectional Search (BFS): Tìm kiếm từ 2 phía. Rất hiệu quả.'
+    }
+};
+
+const languageBtn = document.getElementById('language-btn');
+const languageOverlay = document.getElementById('language-overlay');
+const langViBtn = document.getElementById('lang-vi');
+const langEnBtn = document.getElementById('lang-en');
+let currentLang = 'vi';
+
+function changeLanguage(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        if (key.startsWith('size')) {
+             const sizeLabel = document.getElementById('array-size-label');
+             el.innerHTML = `${translations[lang][key]} <span id="array-size-label">${sizeLabel.innerText}</span>`;
+        } else {
+             el.textContent = translations[lang][key];
+        }
+    });
+    const pfAlgoSelect = document.getElementById('pf-algorithm-select');
+    if (pfAlgoSelect) {
+        const currentAlgo = pfAlgoSelect.value;
+        const algoInfoKey = `algo_info_${currentAlgo}`;
+        document.getElementById('algo-info').textContent = translations[lang][algoInfoKey] || '';
+    }
+    
+    languageOverlay.classList.remove('visible');
+}
+
+languageBtn.addEventListener('click', () => languageOverlay.classList.add('visible'));
+languageOverlay.addEventListener('click', (e) => {
+    if (e.target === languageOverlay) {
+        languageOverlay.classList.remove('visible');
+    }
+});
+langViBtn.addEventListener('click', () => changeLanguage('vi'));
+langEnBtn.addEventListener('click', () => changeLanguage('en'));
+
+
 // Global navigation logic
 const mainMenu = document.getElementById('main-menu');
 const sortingVisualizer = document.getElementById('sorting-visualizer');
@@ -224,13 +504,13 @@ const backToMenuBtns = document.querySelectorAll('.back-to-menu-btn');
 
 showSortingBtn.addEventListener('click', () => {
     mainMenu.style.display = 'none';
-    sortingVisualizer.style.display = 'block';
+    sortingVisualizer.classList.add('visible');
     window.dispatchEvent(new CustomEvent('sorting-load'));
 });
 
 showPathfindingBtn.addEventListener('click', () => {
     mainMenu.style.display = 'none';
-    pathfindingVisualizer.style.display = 'block';
+    pathfindingVisualizer.classList.add('visible');
     window.dispatchEvent(new CustomEvent('pathfinding-load'));
 });
 
@@ -242,12 +522,89 @@ backToMenuBtns.forEach(btn => {
 
 
 // ===================================
+// ===== CUSTOM SELECT SCRIPT =====
+// ===================================
+function initializeCustomSelects() {
+    document.querySelectorAll('.select-wrapper').forEach(wrapper => {
+        const originalSelect = wrapper.querySelector('select');
+        if (wrapper.querySelector('.custom-select-container')) return; // Already initialized
+
+        const customSelectContainer = document.createElement('div');
+        customSelectContainer.className = 'custom-select-container';
+
+        const customSelectTrigger = document.createElement('div');
+        customSelectTrigger.className = 'custom-select-trigger';
+        
+        const selectedOptionText = document.createElement('span');
+        selectedOptionText.textContent = originalSelect.options[originalSelect.selectedIndex].text;
+        
+        const arrow = document.createElement('span');
+        arrow.className = 'arrow';
+        arrow.innerHTML = '▼';
+
+        customSelectTrigger.appendChild(selectedOptionText);
+        customSelectTrigger.appendChild(arrow);
+        
+        const customOptions = document.createElement('div');
+        customOptions.className = 'custom-options';
+
+        Array.from(originalSelect.options).forEach(optionElement => {
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-option';
+            customOption.textContent = optionElement.text;
+            customOption.dataset.value = optionElement.value;
+
+            if (optionElement.selected) {
+                customOption.classList.add('selected');
+            }
+
+            customOption.addEventListener('click', () => {
+                if (customSelectTrigger.classList.contains('disabled')) return;
+                const prevSelected = customOptions.querySelector('.custom-option.selected');
+                if (prevSelected) prevSelected.classList.remove('selected');
+                
+                customOption.classList.add('selected');
+                selectedOptionText.textContent = customOption.textContent;
+                originalSelect.value = customOption.dataset.value;
+                originalSelect.dispatchEvent(new Event('change'));
+                customOptions.classList.remove('open');
+            });
+            customOptions.appendChild(customOption);
+        });
+
+        customSelectTrigger.addEventListener('click', (e) => {
+            if (customSelectTrigger.classList.contains('disabled')) return;
+            e.stopPropagation();
+            document.querySelectorAll('.custom-options.open').forEach(openSelect => {
+                if (openSelect !== customOptions) openSelect.classList.remove('open');
+            });
+            customOptions.classList.toggle('open');
+        });
+
+        customSelectContainer.appendChild(customSelectTrigger);
+        customSelectContainer.appendChild(customOptions);
+
+        wrapper.appendChild(customSelectContainer);
+        originalSelect.style.display = 'none';
+    });
+}
+
+window.addEventListener('click', () => {
+    document.querySelectorAll('.custom-options.open').forEach(openSelect => {
+        openSelect.classList.remove('open');
+    });
+});
+
+document.addEventListener('DOMContentLoaded', initializeCustomSelects);
+
+
+// ===================================
 // ===== PATHFINDING SCRIPT PART =====
 // ===================================
 (function() {
-    const GRID_WIDTH = 50, GRID_HEIGHT = 20;
-    let START_NODE_ROW = 10, START_NODE_COL = 10;
-    let FINISH_NODE_ROW = 10, FINISH_NODE_COL = 40;
+    const GRID_WIDTH = 42, GRID_HEIGHT = 20;
+    let START_NODE_ROW = 10, START_NODE_COL = 8;
+    let FINISH_NODE_ROW = 10, FINISH_NODE_COL = 34;
 
     const gridContainer = document.getElementById('grid-container');
     const visualizeBtn = document.getElementById('pf-visualize-btn');
@@ -255,17 +612,10 @@ backToMenuBtns.forEach(btn => {
     const clearBoardBtn = document.getElementById('pf-clear-board-btn');
     const algorithmSelect = document.getElementById('pf-algorithm-select');
     const algoInfoDiv = document.getElementById('algo-info');
+    const showNumbersToggle = document.getElementById('pf-show-numbers-toggle');
     
     let grid = [], mouseIsPressed = false, isRunning = false, movingNode = null;
-    
-    const ALGO_INFO = {
-        'dijkstra': 'Dijkstra: Đảm bảo đường đi ngắn nhất. Khám phá mọi hướng.',
-        'astar': 'A* Search: Đảm bảo đường đi ngắn nhất. Ưu tiên hướng về đích.',
-        'greedy': 'Greedy Best-first: Không đảm bảo ngắn nhất. Rất nhanh, luôn đi về phía đích.',
-        'bfs': 'Breadth-First Search: Đảm bảo đường đi ngắn nhất. Khám phá theo từng lớp.',
-        'dfs': 'Depth-First Search: Không đảm bảo ngắn nhất. Khám phá sâu vào một nhánh.',
-        'bidirectional': 'Bidirectional Search (BFS): Tìm kiếm từ 2 phía. Rất hiệu quả.'
-    };
+    let lastNodeProcessed = null;
 
     class Node {
         constructor(row, col) {
@@ -276,27 +626,16 @@ backToMenuBtns.forEach(btn => {
             this.element = document.createElement('div');
             this.element.className = 'node';
             this.element.id = `node-${row}-${col}`;
-            this.element.addEventListener('mousedown', () => this.handleMouseDown());
-            this.element.addEventListener('mouseenter', () => this.handleMouseEnter());
-            this.element.addEventListener('mouseup', () => handleMouseUp());
+            this.infoElement = document.createElement('span');
+            this.infoElement.className = 'node-info';
+            this.element.appendChild(this.infoElement);
         }
         reset() {
             this.isVisited = false; this.distance = Infinity; this.previousNode = null;
             this.gScore = Infinity; this.fScore = Infinity; this.hScore = 0;
             this.isVisitedB = false; this.previousNodeB = null;
             this.element.classList.remove('node-visited', 'node-shortest-path', 'node-visited-b');
-        }
-        handleMouseDown() {
-            if (isRunning) return;
-            if (this.isStart) movingNode = 'start';
-            else if (this.isFinish) movingNode = 'finish';
-            else this.toggleWall();
-            mouseIsPressed = true;
-        }
-        handleMouseEnter() {
-            if (!mouseIsPressed || isRunning) return;
-            if (movingNode) moveSpecialNode(this);
-            else this.toggleWall();
+            this.infoElement.textContent = '';
         }
         toggleWall() {
             if (this.isStart || this.isFinish) return;
@@ -321,7 +660,49 @@ backToMenuBtns.forEach(btn => {
         setSpecialNode('finish', FINISH_NODE_ROW, FINISH_NODE_COL);
     }
 
-    function handleMouseUp() { mouseIsPressed = false; movingNode = null; }
+    function handleInteractionStart(e) {
+        if (isRunning) return;
+        const node = getNodeFromEvent(e);
+        if (!node) return;
+        if (node.isStart) movingNode = 'start';
+        else if (node.isFinish) movingNode = 'finish';
+        else node.toggleWall();
+        mouseIsPressed = true;
+        lastNodeProcessed = node;
+    }
+    
+    function handleInteractionMove(e) {
+        if (!mouseIsPressed || isRunning) return;
+        e.preventDefault();
+        const node = getNodeFromEvent(e);
+        if (!node || node === lastNodeProcessed) return;
+        if (movingNode) moveSpecialNode(node);
+        else node.toggleWall();
+        lastNodeProcessed = node;
+    }
+
+    function handleInteractionEnd() {
+        mouseIsPressed = false; movingNode = null; lastNodeProcessed = null;
+    }
+    
+    function getNodeFromEvent(e) {
+        const coords = e.touches ? e.touches[0] : e;
+        const targetElement = document.elementFromPoint(coords.clientX, coords.clientY);
+        if (!targetElement || !targetElement.id.startsWith('node-')) return null;
+        const [_, row, col] = targetElement.id.split('-').map(Number);
+        return (grid[row] && grid[row][col]) ? grid[row][col] : null;
+    }
+    
+    function updateNodeText(node) {
+        const algo = algorithmSelect.value;
+        let text = '';
+        switch(algo) {
+            case 'dijkstra': if (node.distance !== Infinity) text = node.distance; break;
+            case 'astar': if (node.fScore !== Infinity) text = node.fScore; break;
+            case 'greedy': if (node.distance !== Infinity) text = node.distance; break;
+        }
+        node.infoElement.textContent = text;
+    }
 
     function moveSpecialNode(newNode) {
         const isStart = movingNode === 'start';
@@ -335,28 +716,41 @@ backToMenuBtns.forEach(btn => {
     
     function setSpecialNode(type, r, c) { grid[r][c][`is${type.charAt(0).toUpperCase() + type.slice(1)}`] = true; grid[r][c].element.classList.add(`node-${type}`); }
     function clearSpecialNode(type, r, c) { grid[r][c][`is${type.charAt(0).toUpperCase() + type.slice(1)}`] = false; grid[r][c].element.classList.remove(`node-${type}`); }
-
-    function clearBoard(clearWallsOnly = false) {
+    function clearPath() { for (let row of grid) for (let node of row) node.reset(); }
+    function clearWalls() {
         for (let row of grid) for (let node of row) {
             node.reset();
-            if (clearWallsOnly || (!node.isStart && !node.isFinish)) {
-                node.element.classList.remove('node-wall');
+            if (!node.isStart && !node.isFinish) {
                 node.isWall = false;
+                node.element.classList.remove('node-wall');
             }
         }
     }
+    function setAlgoInfo() {
+        const algoKey = algorithmSelect.value;
+        const infoKey = `algo_info_${algoKey}`;
+        algoInfoDiv.textContent = translations[currentLang][infoKey] || '';
+    }
 
-    function setAlgoInfo() { algoInfoDiv.textContent = ALGO_INFO[algorithmSelect.value]; }
-
-    visualizeBtn.addEventListener('click', () => { if (!isRunning) { clearBoard(true); visualizeAlgorithm(); } });
-    clearWallsBtn.addEventListener('click', () => !isRunning && clearBoard(true));
+    visualizeBtn.addEventListener('click', () => { if (!isRunning) { clearPath(); visualizeAlgorithm(); } });
+    clearWallsBtn.addEventListener('click', () => !isRunning && clearWalls());
     clearBoardBtn.addEventListener('click', () => !isRunning && initializeGrid());
     algorithmSelect.addEventListener('change', setAlgoInfo);
-    
+    showNumbersToggle.addEventListener('change', () => { gridContainer.classList.toggle('show-numbers', showNumbersToggle.checked); });
     function setControls(enabled) {
         visualizeBtn.disabled = !enabled; clearWallsBtn.disabled = !enabled;
-        clearBoardBtn.disabled = !enabled; algorithmSelect.disabled = !enabled;
+        clearBoardBtn.disabled = !enabled; 
+        document.querySelectorAll('.custom-select-trigger').forEach(s => {
+            enabled ? s.classList.remove('disabled') : s.classList.add('disabled');
+        });
     }
+    
+    gridContainer.addEventListener('mousedown', handleInteractionStart);
+    gridContainer.addEventListener('touchstart', handleInteractionStart, { passive: false });
+    gridContainer.addEventListener('mousemove', handleInteractionMove);
+    gridContainer.addEventListener('touchmove', handleInteractionMove, { passive: false });
+    window.addEventListener('mouseup', handleInteractionEnd);
+    window.addEventListener('touchend', handleInteractionEnd);
 
     async function visualizeAlgorithm() {
         isRunning = true; setControls(false);
@@ -378,10 +772,11 @@ backToMenuBtns.forEach(btn => {
     async function animate(visited, path, isBi = false, pathB = []) {
         for (let i = 0; i < visited.length; i++) {
             await new Promise(r => setTimeout(r, 10));
+            const currentNode = isBi ? visited[i].node : visited[i];
             if (isBi) {
-                if (visited[i].from === 'start') visited[i].node.element.classList.add('node-visited');
-                else visited[i].node.element.classList.add('node-visited-b');
-            } else if (!visited[i].isStart && !visited[i].isFinish) visited[i].element.classList.add('node-visited');
+                if (visited[i].from === 'start') currentNode.element.classList.add('node-visited');
+                else currentNode.element.classList.add('node-visited-b');
+            } else if (!currentNode.isStart && !currentNode.isFinish) currentNode.element.classList.add('node-visited');
         }
         await animatePath(path);
         if (isBi) await animatePath(pathB);
@@ -418,7 +813,7 @@ backToMenuBtns.forEach(btn => {
     function getAllNodes() { return grid.flat(); }
     
     function dijkstra(start, finish) {
-        const visited = []; start.distance = 0; const unvisited = getAllNodes();
+        const visited = []; start.distance = 0; updateNodeText(start); const unvisited = getAllNodes();
         while (unvisited.length) {
             unvisited.sort((a, b) => a.distance - b.distance);
             const closest = unvisited.shift();
@@ -428,8 +823,11 @@ backToMenuBtns.forEach(btn => {
             if (closest === finish) return visited;
             const neighbors = getNeighbors(closest);
             for (const neighbor of neighbors) if (!neighbor.isVisited) {
-                neighbor.distance = closest.distance + 1;
-                neighbor.previousNode = closest;
+                const newDist = closest.distance + 1;
+                if(newDist < neighbor.distance) {
+                    neighbor.distance = newDist; neighbor.previousNode = closest;
+                    updateNodeText(neighbor);
+                }
             }
         }
         return visited;
@@ -438,6 +836,7 @@ backToMenuBtns.forEach(btn => {
     function aStar(start, finish) {
         const visited = [], openSet = [start];
         start.gScore = 0; start.hScore = heuristic(start, finish); start.fScore = start.hScore;
+        updateNodeText(start);
         while (openSet.length) {
             openSet.sort((a, b) => a.fScore - b.fScore);
             const current = openSet.shift();
@@ -451,6 +850,7 @@ backToMenuBtns.forEach(btn => {
                     neighbor.previousNode = current; neighbor.gScore = tentG;
                     neighbor.hScore = heuristic(neighbor, finish);
                     neighbor.fScore = neighbor.gScore + neighbor.hScore;
+                    updateNodeText(neighbor);
                     if (!openSet.includes(neighbor)) openSet.push(neighbor);
                 }
             }
@@ -460,6 +860,7 @@ backToMenuBtns.forEach(btn => {
 
     function greedyBFS(start, finish) {
         const visited = [], openSet = [start]; start.distance = heuristic(start, finish);
+        updateNodeText(start);
         while(openSet.length){
             openSet.sort((a,b) => a.distance - b.distance);
             const current = openSet.shift();
@@ -470,6 +871,7 @@ backToMenuBtns.forEach(btn => {
             for(const neighbor of neighbors) if(!neighbor.isVisited){
                 neighbor.distance = heuristic(neighbor, finish);
                 neighbor.previousNode = current;
+                updateNodeText(neighbor);
                 openSet.push(neighbor);
             }
         }
@@ -499,8 +901,7 @@ backToMenuBtns.forEach(btn => {
             if (current === finish) return visited;
             const neighbors = getNeighbors(current);
             for(const neighbor of neighbors) if(!neighbor.isVisited) {
-                neighbor.previousNode = current;
-                stack.push(neighbor);
+                neighbor.previousNode = current; stack.push(neighbor);
             }
         }
         return visited;
@@ -508,10 +909,8 @@ backToMenuBtns.forEach(btn => {
 
     async function visualizeBidirectional(start, finish) {
         const qS = [start], qF = [finish];
-        const visited = [];
-        start.isVisited = true; finish.isVisitedB = true;
+        const visited = []; start.isVisited = true; finish.isVisitedB = true;
         let meetingNode = null;
-
         while (qS.length && qF.length) {
             const nodeS = qS.shift(); visited.push({node: nodeS, from: 'start'});
             if (nodeS.isVisitedB) { meetingNode = nodeS; break; }
@@ -519,21 +918,18 @@ backToMenuBtns.forEach(btn => {
             for (const neighbor of neighborsS) if (!neighbor.isVisited) {
                 neighbor.isVisited = true; neighbor.previousNode = nodeS; qS.push(neighbor);
             }
-
             const nodeF = qF.shift(); visited.push({node: nodeF, from: 'finish'});
             if (nodeF.isVisited) { meetingNode = nodeF; break; }
             const neighborsF = getNeighbors(nodeF);
             for (const neighbor of neighborsF) if (!neighbor.isVisitedB) {
                 neighbor.isVisitedB = true; neighbor.previousNodeB = nodeF; qF.push(neighbor);
             }
-            await new Promise(r => setTimeout(r, 10));
         }
-
         let pathS = [], pathF = [];
         if (meetingNode) {
             let currS = meetingNode;
             while(currS !== null) { pathS.unshift(currS); currS = currS.previousNode; }
-            let currF = meetingNode;
+            let currF = meetingNode.previousNodeB;
             while(currF !== null) { pathF.push(currF); currF = currF.previousNodeB; }
         }
         await animate(visited, pathS, true, pathF);
@@ -559,7 +955,10 @@ backToMenuBtns.forEach(btn => {
     
     function setControls(enabled) {
         generateBtn.disabled = !enabled; sortBtn.disabled = !enabled;
-        algoSelect.disabled = !enabled; sizeSlider.disabled = !enabled;
+        sizeSlider.disabled = !enabled;
+        document.querySelectorAll('.custom-select-trigger').forEach(s => {
+            enabled ? s.classList.remove('disabled') : s.classList.add('disabled');
+        });
     }
 
     function sleep() { return new Promise(resolve => setTimeout(resolve, speed)); }
