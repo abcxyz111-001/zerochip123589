@@ -265,8 +265,7 @@
             justify-content: center;
             align-items: center;
         }
-        .node-info { font-size: 9px; color: black; font-weight: bold; pointer-events: none; display: none; }
-        #grid-container.show-numbers .node-info { display: block; }
+        .node-info { font-size: 9px; color: black; font-weight: bold; pointer-events: none; }
         .node-start { background-color: var(--node-start-color); }
         .node-finish { background-color: var(--node-finish-color); }
         .node-wall { background-color: var(--node-wall-color); animation: growWall 0.3s; }
@@ -616,6 +615,7 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
     
     let grid = [], mouseIsPressed = false, isRunning = false, movingNode = null;
     let lastNodeProcessed = null;
+    let lastVisitedNodes = []; // MODIFIED: To store results for toggling numbers
 
     class Node {
         constructor(row, col) {
@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
             this.gScore = Infinity; this.fScore = Infinity; this.hScore = 0;
             this.isVisitedB = false; this.previousNodeB = null;
             this.element.classList.remove('node-visited', 'node-shortest-path', 'node-visited-b');
-            this.infoElement.textContent = '';
+            this.infoElement.textContent = ''; // MODIFIED: Clear text on reset
         }
         toggleWall() {
             if (this.isStart || this.isFinish) return;
@@ -682,7 +682,9 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
     }
 
     function handleInteractionEnd() {
-        mouseIsPressed = false; movingNode = null; lastNodeProcessed = null;
+        mouseIsPressed = false;
+        movingNode = null;
+        lastNodeProcessed = null;
     }
     
     function getNodeFromEvent(e) {
@@ -693,39 +695,63 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
         return (grid[row] && grid[row][col]) ? grid[row][col] : null;
     }
     
-    function updateNodeText(node) {
-        const algo = algorithmSelect.value;
-        let text = '';
-        switch(algo) {
-            case 'dijkstra': if (node.distance !== Infinity) text = node.distance; break;
-            case 'astar': if (node.fScore !== Infinity) text = node.fScore; break;
-            case 'greedy': if (node.distance !== Infinity) text = node.distance; break;
-        }
-        node.infoElement.textContent = text;
-    }
-
     function moveSpecialNode(newNode) {
         const isStart = movingNode === 'start';
         const oldRow = isStart ? START_NODE_ROW : FINISH_NODE_ROW, oldCol = isStart ? START_NODE_COL : FINISH_NODE_COL;
         if (newNode.row === oldRow && newNode.col === oldCol || newNode.isWall || (isStart && newNode.isFinish) || (!isStart && newNode.isStart)) return;
+        
         clearSpecialNode(movingNode, oldRow, oldCol);
-        if (isStart) { START_NODE_ROW = newNode.row; START_NODE_COL = newNode.col; } 
-        else { FINISH_NODE_ROW = newNode.row; FINISH_NODE_COL = newNode.col; }
+        
+        if (isStart) { 
+            START_NODE_ROW = newNode.row; 
+            START_NODE_COL = newNode.col; 
+        } else { 
+            FINISH_NODE_ROW = newNode.row; 
+            FINISH_NODE_COL = newNode.col; 
+        }
         setSpecialNode(movingNode, newNode.row, newNode.col);
+    }
+
+    // MODIFIED: Reworked number display logic
+    function updateNumberDisplay() {
+        // First, clear all numbers from the grid
+        for (const row of grid) {
+            for (const node of row) {
+                node.infoElement.textContent = '';
+            }
+        }
+        
+        // If the toggle is off or if no algorithm has been run, do nothing
+        if (!showNumbersToggle.checked || !lastVisitedNodes.length) return;
+
+        // Display the cost for each visited node from the last run
+        for (const node of lastVisitedNodes) {
+            // Determine cost based on available properties (gScore for A*, distance for others)
+            const cost = node.gScore !== Infinity ? node.gScore : node.distance;
+            if (cost !== Infinity && !node.isStart && !node.isFinish) {
+                node.infoElement.textContent = cost;
+            }
+        }
     }
     
     function setSpecialNode(type, r, c) { grid[r][c][`is${type.charAt(0).toUpperCase() + type.slice(1)}`] = true; grid[r][c].element.classList.add(`node-${type}`); }
     function clearSpecialNode(type, r, c) { grid[r][c][`is${type.charAt(0).toUpperCase() + type.slice(1)}`] = false; grid[r][c].element.classList.remove(`node-${type}`); }
-    function clearPath() { for (let row of grid) for (let node of row) node.reset(); }
+    
+    function clearPath() {
+        lastVisitedNodes = [];
+        for (let row of grid) for (let node of row) node.reset(); 
+    }
+
     function clearWalls() {
+        clearPath(); // Clear path also resets nodes and last visited
         for (let row of grid) for (let node of row) {
-            node.reset();
             if (!node.isStart && !node.isFinish) {
                 node.isWall = false;
                 node.element.classList.remove('node-wall');
             }
         }
     }
+    
     function setAlgoInfo() {
         const algoKey = algorithmSelect.value;
         const infoKey = `algo_info_${algoKey}`;
@@ -734,9 +760,10 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
 
     visualizeBtn.addEventListener('click', () => { if (!isRunning) { clearPath(); visualizeAlgorithm(); } });
     clearWallsBtn.addEventListener('click', () => !isRunning && clearWalls());
-    clearBoardBtn.addEventListener('click', () => !isRunning && initializeGrid());
+    clearBoardBtn.addEventListener('click', () => !isRunning && (initializeGrid(), lastVisitedNodes = [], updateNumberDisplay()));
     algorithmSelect.addEventListener('change', setAlgoInfo);
-    showNumbersToggle.addEventListener('change', () => { gridContainer.classList.toggle('show-numbers', showNumbersToggle.checked); });
+    showNumbersToggle.addEventListener('change', updateNumberDisplay); // MODIFIED: Listener just calls the update function
+
     function setControls(enabled) {
         visualizeBtn.disabled = !enabled; clearWallsBtn.disabled = !enabled;
         clearBoardBtn.disabled = !enabled; 
@@ -766,6 +793,10 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
         }
         path = getPath(finishNode);
         await animate(visited, path);
+
+        lastVisitedNodes = visited; // MODIFIED: Store results
+        updateNumberDisplay(); // MODIFIED: Update display after animation
+        
         isRunning = false; setControls(true);
     }
     
@@ -813,7 +844,7 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
     function getAllNodes() { return grid.flat(); }
     
     function dijkstra(start, finish) {
-        const visited = []; start.distance = 0; updateNodeText(start); const unvisited = getAllNodes();
+        const visited = []; start.distance = 0; const unvisited = getAllNodes();
         while (unvisited.length) {
             unvisited.sort((a, b) => a.distance - b.distance);
             const closest = unvisited.shift();
@@ -826,7 +857,6 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
                 const newDist = closest.distance + 1;
                 if(newDist < neighbor.distance) {
                     neighbor.distance = newDist; neighbor.previousNode = closest;
-                    updateNodeText(neighbor);
                 }
             }
         }
@@ -836,7 +866,6 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
     function aStar(start, finish) {
         const visited = [], openSet = [start];
         start.gScore = 0; start.hScore = heuristic(start, finish); start.fScore = start.hScore;
-        updateNodeText(start);
         while (openSet.length) {
             openSet.sort((a, b) => a.fScore - b.fScore);
             const current = openSet.shift();
@@ -850,7 +879,6 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
                     neighbor.previousNode = current; neighbor.gScore = tentG;
                     neighbor.hScore = heuristic(neighbor, finish);
                     neighbor.fScore = neighbor.gScore + neighbor.hScore;
-                    updateNodeText(neighbor);
                     if (!openSet.includes(neighbor)) openSet.push(neighbor);
                 }
             }
@@ -860,7 +888,6 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
 
     function greedyBFS(start, finish) {
         const visited = [], openSet = [start]; start.distance = heuristic(start, finish);
-        updateNodeText(start);
         while(openSet.length){
             openSet.sort((a,b) => a.distance - b.distance);
             const current = openSet.shift();
@@ -871,7 +898,6 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
             for(const neighbor of neighbors) if(!neighbor.isVisited){
                 neighbor.distance = heuristic(neighbor, finish);
                 neighbor.previousNode = current;
-                updateNodeText(neighbor);
                 openSet.push(neighbor);
             }
         }
@@ -879,13 +905,18 @@ document.addEventListener('DOMContentLoaded', initializeCustomSelects);
     }
     
     function bfs(start, finish) {
-        const visited = [], queue = [start]; start.isVisited = true;
+        const visited = [], queue = [start]; 
+        for(const row of grid) for(const node of row) node.distance = Infinity;
+        start.isVisited = true;
+        start.distance = 0;
         while (queue.length) {
             const current = queue.shift(); visited.push(current);
             if (current === finish) return visited;
             const neighbors = getNeighbors(current);
             for (const neighbor of neighbors) if (!neighbor.isVisited) {
-                neighbor.isVisited = true; neighbor.previousNode = current;
+                neighbor.isVisited = true; 
+                neighbor.previousNode = current;
+                neighbor.distance = current.distance + 1; // MODIFIED: Calculate distance for BFS
                 queue.push(neighbor);
             }
         }
