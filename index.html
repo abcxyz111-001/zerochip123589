@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giao diện Vũ trụ Hiện đại</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #0c0a18;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Dải sao quay --- */
+        .stars-container {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: -2; /* Nằm dưới Hệ Mặt Trời */
+            overflow: hidden;
+            animation: rotateSpace 150s linear infinite;
+        }
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite ease-in-out;
+        }
+
+        /* --- Bối cảnh Hệ mặt trời --- */
+        .solar-system {
+            position: fixed;
+            top: 0;
+            left: 0;
+            /* SỬA LỖI: Dùng kích thước cố định để đảm bảo chứa đủ 8 hành tinh */
+            width: 1050px; 
+            height: 1050px;
+            transform: scale(0.35); /* Điều chỉnh tỉ lệ để vừa góc màn hình */
+            transform-origin: top left;
+            z-index: -1;
+        }
+
+        .sun {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #ffcc00, #ff9900);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 60px #ff9900, 0 0 100px #ff6600;
+        }
+
+        /* Base cho quỹ đạo và hành tinh */
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform-origin: center;
+            animation: revolve linear infinite;
+        }
+        
+        .planet {
+            position: absolute;
+            top: 0; 
+            left: 50%;
+            transform: translate(-50%, -50%); 
+            border-radius: 50%;
+            box-shadow: inset -5px -2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- CÁC HÀNH TINH CHI TIẾT VÀ LỚN HƠN --- */
+        .mercury-orbit { width: 150px; height: 150px; margin-left: -75px; margin-top: -75px; animation-duration: 8.8s; }
+        .mercury { width: 12px; height: 12px; background: #a9a9a9; }
+        
+        .venus-orbit { width: 220px; height: 220px; margin-left: -110px; margin-top: -110px; animation-duration: 22.5s; }
+        .venus { width: 20px; height: 20px; background: #f0e68c; }
+
+        .earth-orbit { width: 300px; height: 300px; margin-left: -150px; margin-top: -150px; animation-duration: 36.5s; }
+        .earth { width: 22px; height: 22px; background: radial-gradient(circle at 20% 30%, #fff 3px, transparent 4px), linear-gradient(135deg, #3466af 40%, #5a8a38 45%, #497f2c 55%, #3466af 60%); }
+
+        .mars-orbit { width: 380px; height: 380px; margin-left: -190px; margin-top: -190px; animation-duration: 68.7s; }
+        .mars { width: 16px; height: 16px; background-color: #cd5c5c; position: relative; overflow: hidden; }
+        .mars::before, .mars::after { /* Chỏm băng */
+            content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+            width: 70%; height: 25%; background: rgba(255, 255, 255, 0.9); border-radius: 50%;
+        }
+        .mars::before { top: -10%; }
+        .mars::after { bottom: -10%; }
+
+        .jupiter-orbit { width: 550px; height: 550px; margin-left: -275px; margin-top: -275px; animation-duration: 120s; }
+        .jupiter { width: 60px; height: 60px; background: radial-gradient(circle at 75% 50%, #b86d42 5%, transparent 20%), linear-gradient(90deg, #d3a17c, #c1866a, #e4ac85, #d3a17c, #c1866a); }
+
+        .saturn-orbit { width: 700px; height: 700px; margin-left: -350px; margin-top: -350px; animation-duration: 295s; }
+        .saturn { width: 45px; height: 45px; background-color: #f5deb3; }
+        .saturn::after { /* Vành đai */
+            content: ''; position: absolute; top: 50%; left: -30%; width: 160%; height: 6px;
+            background: linear-gradient(rgba(245, 222, 179, 0.8), rgba(210, 180, 140, 0.6));
+            border-radius: 50%; transform: translateY(-50%) rotate(25deg);
+        }
+
+        .uranus-orbit { width: 850px; height: 850px; margin-left: -425px; margin-top: -425px; animation-duration: 840s; }
+        .uranus { width: 36px; height: 36px; background-color: #afeeee; }
+
+        .neptune-orbit { width: 1000px; height: 1000px; margin-left: -500px; margin-top: -500px; animation-duration: 1650s; }
+        .neptune { width: 34px; height: 34px; background-color: #4169e1; }
+
+        @keyframes revolve {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes rotateSpace {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        .fade-transition {
+            transition: opacity 0.7s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div id="stars-bg" class="stars-container"></div>
+    
+    <div class="solar-system">
+        <div class="sun"></div>
+        <div class="orbit mercury-orbit"><div class="planet mercury"></div></div>
+        <div class="orbit venus-orbit"><div class="planet venus"></div></div>
+        <div class="orbit earth-orbit"><div class="planet earth"></div></div>
+        <div class="orbit mars-orbit"><div class="planet mars"></div></div>
+        <div class="orbit jupiter-orbit"><div class="planet jupiter"></div></div>
+        <div class="orbit saturn-orbit"><div class="planet saturn"></div></div>
+        <div class="orbit uranus-orbit"><div class="planet uranus"></div></div>
+        <div class="orbit neptune-orbit"><div class="planet neptune"></div></div>
+    </div>
+
+    <div id="loading-screen" class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm fade-transition opacity-100">
+        <div class="text-center">
+            <h1 class="text-6xl font-bold tracking-widest text-white animate-pulse" style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.7), 0 0 25px rgba(128, 0, 255, 0.5);">
+                Zero
+            </h1>
+        </div>
+    </div>
+
+    <main id="main-screen" class="min-h-screen flex items-center justify-center p-4 fade-transition opacity-0" style="display: none;">
+        <div class="w-full max-w-sm p-8 space-y-6 bg-white/5 backdrop-blur-sm border border-white/30 rounded-2xl shadow-2xl shadow-blue-500/20">
+            <h2 class="text-3xl font-bold text-center text-white">Menu chính</h2>
+            
+            <a href="" class="block w-full px-6 py-4 text-center font-semibold text-white bg-white/5 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg shadow-black/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-white/60 transform hover:-translate-y-1 transition-all duration-300">
+                Nội dung game
+            </a>
+            
+            <a href="" class="block w-full px-6 py-4 text-center font-semibold text-white bg-white/5 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg shadow-black/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-white/60 transform hover:-translate-y-1 transition-all duration-300">
+                Mô phỏng thuật toán
+            </a>
+        </div>
+    </main>
+
+    <script>
+        function createStars() {
+            const container = document.getElementById('stars-bg');
+            const starCount = 555;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                star.style.animationDuration = `${Math.random() * 3 + 4}s`;
+                container.appendChild(star);
+            }
+        }
+
+        window.onload = function() {
+            createStars();
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loading-screen');
+                const mainScreen = document.getElementById('main-screen');
+                
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.pointerEvents = 'none';
+
+                loadingScreen.addEventListener('transitionend', () => {
+                    loadingScreen.style.display = 'none';
+                });
+
+                mainScreen.style.display = 'flex';
+                setTimeout(() => {
+                    mainScreen.style.opacity = '1';
+                }, 20);
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
+
