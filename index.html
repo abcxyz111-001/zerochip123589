@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zero</title>
+    <title>Giao diện Vũ trụ Hiện đại</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,10 +41,9 @@
             position: fixed;
             top: 0;
             left: 0;
-            /* SỬA LỖI: Dùng kích thước cố định để đảm bảo chứa đủ 8 hành tinh */
             width: 1050px; 
             height: 1050px;
-            transform: scale(0.35); /* Điều chỉnh tỉ lệ để vừa góc màn hình */
+            transform: scale(0.35); 
             transform-origin: top left;
             z-index: -1;
         }
@@ -69,7 +68,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             transform-origin: center;
-            animation: revolve linear infinite;
         }
         
         .planet {
@@ -82,16 +80,16 @@
         }
 
         /* --- CÁC HÀNH TINH CHI TIẾT VÀ LỚN HƠN --- */
-        .mercury-orbit { width: 150px; height: 150px; margin-left: -75px; margin-top: -75px; animation-duration: 8.8s; }
+        .mercury-orbit { width: 150px; height: 150px; margin-left: -75px; margin-top: -75px; }
         .mercury { width: 12px; height: 12px; background: #a9a9a9; }
         
-        .venus-orbit { width: 220px; height: 220px; margin-left: -110px; margin-top: -110px; animation-duration: 22.5s; }
+        .venus-orbit { width: 220px; height: 220px; margin-left: -110px; margin-top: -110px; }
         .venus { width: 20px; height: 20px; background: #f0e68c; }
 
-        .earth-orbit { width: 300px; height: 300px; margin-left: -150px; margin-top: -150px; animation-duration: 36.5s; }
+        .earth-orbit { width: 300px; height: 300px; margin-left: -150px; margin-top: -150px; }
         .earth { width: 22px; height: 22px; background: radial-gradient(circle at 20% 30%, #fff 3px, transparent 4px), linear-gradient(135deg, #3466af 40%, #5a8a38 45%, #497f2c 55%, #3466af 60%); }
 
-        .mars-orbit { width: 380px; height: 380px; margin-left: -190px; margin-top: -190px; animation-duration: 68.7s; }
+        .mars-orbit { width: 380px; height: 380px; margin-left: -190px; margin-top: -190px; }
         .mars { width: 16px; height: 16px; background-color: #cd5c5c; position: relative; overflow: hidden; }
         .mars::before, .mars::after { /* Chỏm băng */
             content: ''; position: absolute; left: 50%; transform: translateX(-50%);
@@ -100,10 +98,10 @@
         .mars::before { top: -10%; }
         .mars::after { bottom: -10%; }
 
-        .jupiter-orbit { width: 550px; height: 550px; margin-left: -275px; margin-top: -275px; animation-duration: 120s; }
+        .jupiter-orbit { width: 550px; height: 550px; margin-left: -275px; margin-top: -275px; }
         .jupiter { width: 60px; height: 60px; background: radial-gradient(circle at 75% 50%, #b86d42 5%, transparent 20%), linear-gradient(90deg, #d3a17c, #c1866a, #e4ac85, #d3a17c, #c1866a); }
 
-        .saturn-orbit { width: 700px; height: 700px; margin-left: -350px; margin-top: -350px; animation-duration: 295s; }
+        .saturn-orbit { width: 700px; height: 700px; margin-left: -350px; margin-top: -350px; }
         .saturn { width: 45px; height: 45px; background-color: #f5deb3; }
         .saturn::after { /* Vành đai */
             content: ''; position: absolute; top: 50%; left: -30%; width: 160%; height: 6px;
@@ -111,16 +109,12 @@
             border-radius: 50%; transform: translateY(-50%) rotate(25deg);
         }
 
-        .uranus-orbit { width: 850px; height: 850px; margin-left: -425px; margin-top: -425px; animation-duration: 840s; }
+        .uranus-orbit { width: 850px; height: 850px; margin-left: -425px; margin-top: -425px; }
         .uranus { width: 36px; height: 36px; background-color: #afeeee; }
 
-        .neptune-orbit { width: 1000px; height: 1000px; margin-left: -500px; margin-top: -500px; animation-duration: 1650s; }
+        .neptune-orbit { width: 1000px; height: 1000px; margin-left: -500px; margin-top: -500px; }
         .neptune { width: 34px; height: 34px; background-color: #4169e1; }
 
-        @keyframes revolve {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
         @keyframes rotateSpace {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -163,11 +157,11 @@
         <div class="w-full max-w-sm p-8 space-y-6 bg-white/5 backdrop-blur-sm border border-white/30 rounded-2xl shadow-2xl shadow-blue-500/20">
             <h2 class="text-3xl font-bold text-center text-white">Menu chính</h2>
             
-            <a href="game.html" class="block w-full px-6 py-4 text-center font-semibold text-white bg-white/5 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg shadow-black/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-white/60 transform hover:-translate-y-1 transition-all duration-300">
-                Game
+            <a href="" class="block w-full px-6 py-4 text-center font-semibold text-white bg-white/5 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg shadow-black/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-white/60 transform hover:-translate-y-1 transition-all duration-300">
+                Nội dung game
             </a>
             
-            <a href="algorithm.html" class="block w-full px-6 py-4 text-center font-semibold text-white bg-white/5 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg shadow-black/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-white/60 transform hover:-translate-y-1 transition-all duration-300">
+            <a href="" class="block w-full px-6 py-4 text-center font-semibold text-white bg-white/5 backdrop-blur-sm border border-white/30 rounded-xl shadow-lg shadow-black/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-white/60 transform hover:-translate-y-1 transition-all duration-300">
                 Mô phỏng thuật toán
             </a>
         </div>
@@ -191,8 +185,66 @@
             }
         }
 
+        function animateSolarSystem() {
+            // Dữ liệu thiên văn: Chu kỳ quỹ đạo (ngày Trái Đất) và kinh độ trung bình tại mốc J2000 (độ)
+            const orbitalData = {
+                mercury: { period: 87.97, longitude: 252.25 },
+                venus:   { period: 224.70, longitude: 181.98 },
+                earth:   { period: 365.25, longitude: 100.46 },
+                mars:    { period: 686.98, longitude: 355.45 },
+                jupiter: { period: 4332.59, longitude: 34.40 },
+                saturn:  { period: 10759.22, longitude: 49.94 },
+                uranus:  { period: 30688.5, longitude: 313.23 },
+                neptune: { period: 60182, longitude: 304.88 }
+            };
+
+            const orbits = {
+                mercury: document.querySelector('.mercury-orbit'),
+                venus: document.querySelector('.venus-orbit'),
+                earth: document.querySelector('.earth-orbit'),
+                mars: document.querySelector('.mars-orbit'),
+                jupiter: document.querySelector('.jupiter-orbit'),
+                saturn: document.querySelector('.saturn-orbit'),
+                uranus: document.querySelector('.uranus-orbit'),
+                neptune: document.querySelector('.neptune-orbit')
+            };
+
+            const simulationSpeedFactor = 100; // 100ms ngoài đời = 1 ngày trong mô phỏng
+            const j2000Epoch = new Date('2000-01-01T12:00:00Z');
+            
+            // Tính toán vị trí ban đầu dựa trên thời gian thực
+            const now = new Date();
+            const millisSinceEpoch = now.getTime() - j2000Epoch.getTime();
+            const baseDaysSinceEpoch = millisSinceEpoch / (1000 * 60 * 60 * 24);
+
+            const startTime = Date.now(); // Thời điểm bắt đầu hoạt ảnh
+
+            function updatePositions() {
+                // Tính toán thời gian đã trôi qua trong mô phỏng kể từ khi tải trang
+                const elapsedMillis = Date.now() - startTime;
+                const simulatedDaysPassed = elapsedMillis / simulationSpeedFactor;
+                
+                const totalDays = baseDaysSinceEpoch + simulatedDaysPassed;
+
+                for (const planet in orbits) {
+                    if (orbits[planet]) {
+                        const data = orbitalData[planet];
+                        const revolutions = totalDays / data.period;
+                        const currentAngle = data.longitude + (revolutions * 360);
+                        
+                        orbits[planet].style.transform = `rotate(${currentAngle % 360}deg)`;
+                    }
+                }
+                requestAnimationFrame(updatePositions);
+            }
+            
+            updatePositions();
+        }
+
         window.onload = function() {
             createStars();
+            animateSolarSystem();
+
             setTimeout(function() {
                 const loadingScreen = document.getElementById('loading-screen');
                 const mainScreen = document.getElementById('main-screen');
