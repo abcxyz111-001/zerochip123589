@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Dạy Con Làm Giàu - Đọc Sách Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --dark-bg: #1a1a1a;
+            --dark-text: #e0e0e0;
+            --light-bg: #ffffff;
+            --light-text: #333333;
+            --sidebar-width: min(300px, 85vw);
+            --header-height: clamp(50px, 8vh, 70px);
+            
+            /* Responsive font sizes */
+            --font-base: clamp(14px, 2vw, 18px);
+            --font-small: clamp(12px, 1.5vw, 14px);
+            --font-large: clamp(18px, 2.5vw, 24px);
+            --font-xlarge: clamp(24px, 3vw, 36px);
+            
+            /* Responsive spacing */
+            --spacing-xs: clamp(4px, 1vw, 8px);
+            --spacing-sm: clamp(8px, 1.5vw, 12px);
+            --spacing-md: clamp(12px, 2vw, 20px);
+            --spacing-lg: clamp(20px, 3vw, 40px);
+            --spacing-xl: clamp(30px, 4vw, 60px);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--light-bg);
+            color: var(--light-text);
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+            font-size: var(--font-base);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body.dark-mode {
+            background: var(--dark-bg);
+            color: var(--dark-text);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: var(--header-height);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--spacing-md);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: clamp(20px, 3vw, 28px);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            padding: var(--spacing-xs);
+            flex-shrink: 0;
+        }
+
+        .menu-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .book-info {
+            color: white;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .book-title {
+            font-size: clamp(14px, 2.5vw, 20px);
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-author {
+            font-size: clamp(11px, 1.8vw, 14px);
+            opacity: 0.9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* Control Buttons */
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: clamp(6px, 1vw, 10px) clamp(8px, 1.5vw, 15px);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: var(--font-small);
+            white-space: nowrap;
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .control-btn span:last-child {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .control-btn span:last-child {
+                display: inline;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: var(--header-height);
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            height: calc(100dvh - var(--header-height));
+            background: #f5f5f5;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+
+        body.dark-mode .sidebar {
+            background: #2a2a2a;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .chapter-list {
+            padding: 20px;
+        }
+
+        .chapter-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        body.dark-mode .chapter-item {
+            background: #3a3a3a;
+        }
+
+        .chapter-item:hover {
+            transform: translateX(5px);
+            border-left-color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .chapter-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-left-color: transparent;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: var(--header-height);
+            padding: var(--spacing-lg);
+            transition: all 0.3s ease;
+            min-height: calc(100vh - var(--header-height));
+            min-height: calc(100dvh - var(--header-height));
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+            
+            .main-content.full-width {
+                margin-left: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            
+            .sidebar.hidden {
+                transform: translateX(-100%) !important;
+            }
+        }
+
+        .content-wrapper {
+            max-width: min(900px, 100%);
+            margin: 0 auto;
+            background: white;
+            padding: clamp(15px, 4vw, 40px);
+            border-radius: clamp(8px, 1.5vw, 15px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-size: clamp(16px, 2.2vw, 20px);
+        }
+
+        body.dark-mode .content-wrapper {
+            background: #2a2a2a;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Reading Progress */
+        .reading-progress {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, #f39c12 0%, #e74c3c 100%);
+            transition: width 0.3s ease;
+            z-index: 1001;
+        }
+
+        /* Font Size Controls */
+        .font-controls {
+            position: fixed;
+            right: clamp(10px, 2vw, 20px);
+            bottom: clamp(80px, 12vh, 100px);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.5vw, 12px);
+            z-index: 998;
+        }
+
+        .font-btn {
+            width: clamp(35px, 6vw, 45px);
+            height: clamp(35px, 6vw, 45px);
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: clamp(14px, 2.5vw, 20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Bookmark */
+        .bookmark-btn {
+            position: fixed;
+            right: clamp(10px, 2vw, 20px);
+            bottom: clamp(140px, 20vh, 160px);
+            width: clamp(40px, 7vw, 55px);
+            height: clamp(40px, 7vw, 55px);
+            border-radius: 50%;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: clamp(16px, 3vw, 24px);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bookmark-btn:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .bookmark-btn.bookmarked {
+            background: #27ae60;
+        }
+
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            right: clamp(10px, 2vw, 20px);
+            bottom: clamp(20px, 4vh, 40px);
+            width: clamp(40px, 7vw, 55px);
+            height: clamp(40px, 7vw, 55px);
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: clamp(16px, 3vw, 24px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Chapter Navigation */
+        .chapter-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .chapter-nav-btn {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .chapter-nav-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .chapter-nav-btn.prev:hover {
+            transform: translateX(-5px);
+        }
+
+        .chapter-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Search Box */
+        .search-box {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .search-input {
+            background: #3a3a3a;
+            border-color: #555;
+            color: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* Reading Time */
+        .reading-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: white;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1002;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        /* Mobile Responsive */
+        
+        /* Extra Small Devices (phones, 360px and down) */
+        @media only screen and (max-width: 360px) {
+            .content-wrapper {
+                font-size: 14px !important;
+            }
+            
+            .header {
+                height: 50px;
+            }
+            
+            .book-author {
+                display: none;
+            }
+        }
+        
+        /* Small Devices (phones, 361px - 480px) */
+        @media only screen and (min-width: 361px) and (max-width: 480px) {
+            .content-wrapper {
+                font-size: 15px !important;
+            }
+        }
+        
+        /* Medium Devices (tablets, 481px - 768px) */
+        @media only screen and (min-width: 481px) and (max-width: 768px) {
+            .content-wrapper {
+                font-size: 16px !important;
+            }
+            
+            .sidebar {
+                width: 280px;
+            }
+        }
+        
+        /* Large Devices (small laptops, 769px - 1024px) */
+        @media only screen and (min-width: 769px) and (max-width: 1024px) {
+            .content-wrapper {
+                font-size: 17px !important;
+            }
+        }
+        
+        /* Extra Large Devices (desktops, 1025px - 1440px) */
+        @media only screen and (min-width: 1025px) and (max-width: 1440px) {
+            .content-wrapper {
+                font-size: 18px !important;
+            }
+        }
+        
+        /* Ultra Wide (large desktops, 1441px and up) */
+        @media only screen and (min-width: 1441px) {
+            .content-wrapper {
+                font-size: 19px !important;
+                max-width: 1000px;
+            }
+            
+            .main-content {
+                padding: 60px;
+            }
+        }
+        
+        /* Portrait orientation specific */
+        @media only screen and (orientation: portrait) and (max-width: 768px) {
+            .sidebar {
+                width: 85vw;
+                max-width: 320px;
+            }
+            
+            .font-controls {
+                bottom: 15vh;
+            }
+            
+            .bookmark-btn {
+                bottom: 22vh;
+            }
+            
+            .back-to-top {
+                bottom: 5vh;
+            }
+        }
+        
+        /* Landscape orientation specific */
+        @media only screen and (orientation: landscape) and (max-height: 600px) {
+            .header {
+                height: 45px;
+            }
+            
+            .content-wrapper {
+                padding: 15px;
+            }
+            
+            .font-controls,
+            .bookmark-btn,
+            .back-to-top {
+                transform: scale(0.8);
+            }
+        }
+        
+        /* Touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .control-btn,
+            .font-btn,
+            .bookmark-btn,
+            .back-to-top,
+            .chapter-nav-btn {
+                padding: 12px 20px;
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .chapter-item {
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+        }
+        
+        /* High DPI screens */
+        @media only screen and (-webkit-min-device-pixel-ratio: 2),
+               only screen and (min-resolution: 192dpi) {
+            body {
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+        }
+        
+        /* Foldable devices */
+        @media only screen and (min-width: 320px) and (max-width: 768px) 
+               and (min-height: 600px) and (max-height: 900px) {
+            .sidebar {
+                width: min(90vw, 350px);
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .header,
+            .sidebar,
+            .font-controls,
+            .bookmark-btn,
+            .back-to-top,
+            .chapter-nav {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .content-wrapper {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .content-wrapper {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a7bc8;
+        }
+
+        /* Highlight */
+        ::selection {
+            background: rgba(74, 144, 226, 0.3);
+            color: inherit;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1003;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: clamp(40px, 10vw, 60px);
+            height: clamp(40px, 10vw, 60px);
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Safe area insets for notch devices */
+        @supports (padding: env(safe-area-inset-top)) {
+            .header {
+                padding-top: env(safe-area-inset-top);
+                height: calc(var(--header-height) + env(safe-area-inset-top));
+            }
+            
+            .sidebar {
+                top: calc(var(--header-height) + env(safe-area-inset-top));
+                height: calc(100vh - var(--header-height) - env(safe-area-inset-top));
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .main-content {
+                margin-top: calc(var(--header-height) + env(safe-area-inset-top));
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .font-controls,
+            .bookmark-btn,
+            .back-to-top {
+                margin-bottom: env(safe-area-inset-bottom);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress" id="readingProgress"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" title="Menu">☰</button>
+            <div class="book-info">
+                <div class="book-title">Dạy Con Làm Giàu - Tập 1</div>
+                <div class="book-author">Robert Kiyosaki & Sharon Lechter</div>
+            </div>
+        </div>
+        <div class="header-controls">
+            <div class="reading-time">
+                <span>⏱</span>
+                <span id="readingTime">15 phút</span>
+            </div>
+            <button class="control-btn" id="themeToggle" title="Chế độ tối">
+                <span id="themeIcon">🌙</span>
+                <span>Chế độ tối</span>
+            </button>
+            <button class="control-btn" id="fullscreenToggle" title="Toàn màn hình">
+                <span>⛶</span>
+                <span>Toàn màn hình</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="Tìm kiếm chương...">
+        </div>
+        <div class="chapter-list" id="chapterList">
+            <div class="chapter-item active" data-chapter="0">Lời nói đầu</div>
+            <div class="chapter-item" data-chapter="1">Chương 1: Cha Giàu, Cha Nghèo</div>
+            <div class="chapter-item" data-chapter="2">Chương 2: Người giàu không làm việc vì tiền</div>
+            <div class="chapter-item" data-chapter="3">Chương 3: Tại sao phải dạy con về tài chính?</div>
+            <div class="chapter-item" data-chapter="4">Chương 4: Hãy nghĩ đến việc kinh doanh của mình</div>
+            <div class="chapter-item" data-chapter="5">Chương 5: Lịch sử của thuế</div>
+            <div class="chapter-item" data-chapter="6">Chương 6: Người giàu tạo ra tiền</div>
+            <div class="chapter-item" data-chapter="7">Chương 7: Làm việc để học</div>
+            <div class="chapter-item" data-chapter="8">Chương 8: Vượt chướng ngại vật</div>
+            <div class="chapter-item" data-chapter="9">Chương 9: Sự khởi đầu</div>
+            <div class="chapter-item" data-chapter="10">Chương 10: Vẫn còn muốn nhiều hơn?</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-wrapper" id="contentWrapper">
+            <div id="bookContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="chapter-nav">
+                <button class="chapter-nav-btn prev" id="prevChapter" disabled>← Chương trước</button>
+                <button class="chapter-nav-btn next" id="nextChapter">Chương sau →</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Font Controls -->
+    <div class="font-controls">
+        <button class="font-btn" id="fontDecrease" title="Giảm cỡ chữ">A-</button>
+        <button class="font-btn" id="fontIncrease" title="Tăng cỡ chữ">A+</button>
+    </div>
+
+    <!-- Bookmark Button -->
+    <button class="bookmark-btn" id="bookmarkBtn" title="Đánh dấu">🔖</button>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop" title="Lên đầu trang">↑</button>
+
+    <!-- Loading Spinner -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Book Content Data
+        const bookChapters = [
+            {
+                title: "Lời nói đầu",
+                content: `
+                    <h2>Lời nói đầu</h2>
+                    <p>Một trong những nguyên nhân khiến người giàu ngày càng giàu, người nghèo ngày càng nghèo, còn giới trung lưu thì thường mắc nợ chính là vì chủ đề tiền bạc thường được dạy ở nhà chứ không phải ở trường.</p>
+                    <p>Hầu hết chúng ta học cách xử lý tiền bạc từ cha mẹ mình, và thường thì người nghèo không dạy con về tiền bạc mà chỉ nói đơn giản là: "Hãy đến trường và học cho chăm chỉ." Và rồi đứa trẻ có thể sẽ tốt nghiệp với một số điểm xuất sắc nhưng với một đầu óc nghèo nàn về cách quản lý tiền bạc, vì trường học không dạy về chuyện tiền nong mà chỉ tập trung vào việc giáo dục sách vở và những kỹ năng nghề nghiệp mà không nói gì về kỹ năng tài chính.</p>
+                    <p>Đó chính là lý do tại sao những nhân viên ngân hàng, bác sĩ, kế toán thông minh dù đạt được nhiều điểm số xuất sắc ở trường nhưng lại gặp nhiều rắc rối tài chính suốt đời. Và những món nợ quốc gia chóng mặt thường bắt nguồn từ những vị lãnh đạo có học vấn cao, nhưng chỉ được huấn luyện rất ít hoặc không có chút kỹ năng nào về vấn đề tài chính.</p>
+                    <p>Một quốc gia có thể tồn tại như thế nào nếu việc dạy trẻ con quản lý tiền bạc vẫn là trách nhiệm của phụ huynh, mà hầu hết họ không có nhiều kiến thức về vấn đề này?</p>
+                    <p>Chúng ta phải làm gì để thay đổi số phận tiền bạc lận đận của mình? Nhà giàu đã làm giàu như thế nào từ hai bàn tay trắng?...</p>
+                    <p>Có lẽ bạn sẽ tìm thấy cho mình những lời giải đáp về các vấn đề đó trong cuốn sách này.</p>
+                `
+            },
+            {
+                title: "Chương 1: Cha Giàu, Cha Nghèo",
+                content: `
+                    <h2>CHƯƠNG 1: Cha Giàu, Cha Nghèo</h2>
+                    <h3>ROBERT KIYOSAKI Kể</h3>
+                    <p>Tôi có hai người cha, một người giàu và một người nghèo - một người cha ruột và một người cha nuôi (cha của Mike - bạn tôi). Cha ruột tôi đã có bằng thạc sĩ, còn người cha nuôi thì chưa học hết lớp tám, nhưng cả hai người đều thành công trong sự nghiệp và có ảnh hưởng đến người khác. Cả hai đều khuyên bảo tôi rất nhiều điều, nhưng những lời khuyên đó không giống nhau. Cả hai đều tin tưởng mãnh liệt vào sự học nhưng lại khuyên tôi học những khóa học khác nhau.</p>
+                    <p>Nếu tôi chỉ có một người cha, tôi sẽ hoặc chấp nhận hoặc phản đối ý kiến của ông. Có hai người cha dạy bảo, tôi thấy được những quan điểm trái ngược nhau giữa một người giàu và một người nghèo. Và thay vì chỉ đơn giản chấp nhận hay phản đối người này hay người kia, tôi đã cố suy nghĩ nhiều hơn, so sánh và lựa chọn cho chính mình.</p>
+                    <p>Cả hai người cha của tôi khi bắt đầu tạo dựng sự nghiệp đều phải đấu tranh với chuyện tiền nong, nhưng cả hai có những quan điểm khác nhau về vấn đề tiền bạc.</p>
+                    <p>Ví dụ, cha ruột tôi thường nói: "Ham mê tiền bạc là nguồn gốc của mọi điều xấu." Còn cha nuôi của tôi lại bảo rằng: "Thiếu thốn tiền bạc là nguồn gốc của mọi điều xấu."</p>
+                    <p>Những sự khác nhau trong quan điểm của họ, nhất là khi đề cập đến tiền bạc, khiến tôi trở nên tò mò và bắt đầu suy nghĩ...</p>
+                    <p>Vì có hai người cha đầy ảnh hưởng, tôi đã học từ cả hai người. Tôi suy nghĩ về lời khuyên của mỗi người, và nhờ vậy, tôi có được một hiểu biết sâu sắc về quyền lực và tác động của suy nghĩ lên cuộc sống con người như thế nào.</p>
+                `
+            },
+            {
+                title: "Chương 2: Người giàu không làm việc vì tiền",
+                content: `
+                    <h2>CHƯƠNG 2: Bài 1 - Người giàu không làm việc vì tiền</h2>
+                    <h3>Bài học bắt đầu:</h3>
+                    <p>"Ta sẽ trả cho các con 10 xu một giờ."</p>
+                    <p>Ngay cả vào những năm 1950, 10 xu một giờ cũng là quá thấp.</p>
+                    <p>Buổi sáng hôm ấy, cha của Mike hẹn gặp tôi và nó lúc 8 giờ. Vì là chủ của một kho hàng, một công ty xây dựng, một số cửa hiệu và ba quán ăn, nên ông rất bận rộn...</p>
+                    <p>Khi chúng tôi đến, cha Mike đang nói chuyện điện thoại và chúng tôi phải ngồi chờ ông ở băng ghế ngoài hiên sau, cùng với hai người phụ nữ và một người đàn ông trung niên làm nhiệm vụ quản lý nhà hàng và coi kho cho cha của Mike.</p>
+                    <p>Hai đứa tôi đã ngồi chờ rất lâu, rồi khi tôi cảm thấy mình đã bắt đầu mất hết kiên nhẫn, thình lình cha Mike xuất hiện. Mike và tôi giật mình bật đứng lên.</p>
+                    <p>"Sẵn sàng học chưa, các con?" Cha Mike hỏi, kéo một cái ghế đến ngồi với chúng tôi.</p>
+                    <p>Tôi và Mike cùng gật đầu.</p>
+                    <p>"Tốt. Cha sẽ dạy các con, nhưng không phải theo kiểu trong lớp học. Nếu các con làm việc cho cha, cha sẽ dạy các con cách làm giàu. Nếu không, cha sẽ không dạy... Thế đấy đồng ý hay không là tùy các con."</p>
+                    <h3>BÀI HỌC SỐ 1:</h3>
+                    <p><strong>Người nghèo làm việc vì tiền bạc. Người giàu buộc tiền bạc làm việc vì mình.</strong></p>
+                `
+            },
+            {
+                title: "Chương 3: Tại sao phải dạy con về tài chính?",
+                content: `
+                    <h2>CHƯƠNG 3: Bài 2 - Tại sao phải dạy con về tài chính?</h2>
+                    <p>Hầu hết mọi người không nhận ra rằng: trong cuộc sống, vấn đề không phải là bạn kiếm được bao nhiêu tiền mà là bạn giữ được bao nhiêu tiền và làm cho nó sinh sôi nảy nở như thế nào.</p>
+                    <p>Điều đó cũng giống như trồng một cái cây vậy. Ban đầu, bạn sẽ phải mất rất nhiều công sức để chăm bón nó, đến một ngày nào đó, khi rễ cây đã đâm sâu vào lòng đất, cái cây đã đủ lớn để tự mình phát triển, bạn sẽ không cần phải tốn công chăm bón nữa mà vẫn có thể được hưởng những mùa quả ngọt lành.</p>
+                    <p>Muốn cho cái cây tiền bạc của bạn phát triển, bạn phải có nhiều kiến thức về tài chính để biết chăm bón nó thật đúng cách.</p>
+                    <h3>Quy luật 1:</h3>
+                    <p><strong>Bạn phải biết sự khác nhau giữa tài sản (asset) và tiêu sản (liability) và để được giàu có, bạn phải mua tài sản.</strong></p>
+                    <p>Nghe thì có vẻ đơn giản đến buồn cười, nhưng hầu hết mọi người đều không biết được nó uyên thâm đến mức nào, vì họ không biết được sự khác nhau giữa một tài sản và một tiêu sản là ở đâu.</p>
+                    <p>"Người giàu kiếm được tài sản. Người nghèo và người trung lưu chỉ thu được tiêu sản, nhưng họ nghĩ rằng họ đã kiếm được tài sản."</p>
+                    <p>Người cha giàu đã nói với hai chúng tôi một cách đơn giản rằng: "Tài sản bỏ tiền vào túi các con, còn tiêu sản thì lôi tiền ra khỏi túi."</p>
+                    <p>Nếu bạn muốn trở nên giàu có, hãy mua tài sản. Nếu muốn trở nên nghèo đi, hãy mua tiêu sản.</p>
+                `
+            },
+            {
+                title: "Chương 4: Hãy nghĩ đến việc kinh doanh của mình",
+                content: `
+                    <h2>CHƯƠNG 4: Bài 3 - Hãy nghĩ đến việc kinh doanh của mình</h2>
+                    <p>Một người bạn của tôi tên là Keith Cunningham, khi đang theo học một lớp MBA của đại học Texas ở Austin, đã được nghe Ray Kroc, người sáng lập McDonald's, nói chuyện. Ray đã hỏi cả lớp: "Đố các bạn, tôi kinh doanh cái gì?"</p>
+                    <p>Hầu hết các sinh viên MBA đều cười vì nghĩ rằng Ray đang nói đùa. Không có ai trả lời cả, Ray lại hỏi lần nữa: "Theo các bạn thì tôi kinh doanh cái gì?"</p>
+                    <p>Các sinh viên lại cười, và cuối cùng một người la to: "Ray, ai mà không biết ông kinh doanh hamburger chứ."</p>
+                    <p>Ray tỏ vẻ khoái trá: "Tôi cũng nghĩ anh sẽ nói như vậy." Ông ngừng một lúc và nói nhanh: "Này các bạn, tôi không kinh doanh hamburger. Tôi kinh doanh bất động sản!"</p>
+                    <p>Ray đã dùng phần lớn thời gian hôm đó để giải thích những quan điểm của ông. Ray chú trọng vào việc bán hamburger, nhưng ông không bao giờ quên để mắt tới vị trí buôn bán. Ông biết rằng bất động sản và vị trí của nó là nhân tố quan trọng nhất trong sự thành công của việc kinh doanh.</p>
+                    <h3>Bí mật thứ 3 của những người giàu:</h3>
+                    <p><strong>"Hãy nghĩ đến việc kinh doanh của chính mình."</strong></p>
+                    <p>Những khó khăn tài chính thường là kết quả trực tiếp do người ta suốt đời phải làm việc cho người khác. Sau những chuỗi ngày làm việc vất vả, nhiều người không có được gì cả.</p>
+                `
+            }
+        ];
+
+        // Initialize variables
+        let currentChapter = 0;
+        let fontSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-base'));
+        let isDarkMode = false;
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+        let isMobile = window.innerWidth <= 768;
+        let isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+        
+        // Detect device type
+        function detectDevice() {
+            isMobile = window.innerWidth <= 768;
+            isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+            
+            // Auto close sidebar on mobile
+            if (isMobile && !sidebar.classList.contains('hidden')) {
+                sidebar.classList.add('hidden');
+                mainContent.classList.add('full-width');
+            }
+            
+            // Auto show sidebar on desktop
+            if (!isMobile && !isTablet) {
+                sidebar.classList.remove('hidden');
+                mainContent.classList.remove('full-width');
+            }
+        }
+        
+        // Handle resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                detectDevice();
+                adjustFontSize();
+            }, 250);
+        });
+        
+        // Adjust font size based on viewport
+        function adjustFontSize() {
+            const vw = window.innerWidth;
+            let baseFontSize;
+            
+            if (vw <= 360) baseFontSize = 14;
+            else if (vw <= 480) baseFontSize = 15;
+            else if (vw <= 768) baseFontSize = 16;
+            else if (vw <= 1024) baseFontSize = 17;
+            else if (vw <= 1440) baseFontSize = 18;
+            else baseFontSize = 19;
+            
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                fontSize = parseInt(savedFontSize);
+            } else {
+                fontSize = baseFontSize;
+            }
+            
+            document.getElementById('contentWrapper').style.fontSize = fontSize + 'px';
+        }
+        
+        // DOM elements
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const bookContent = document.getElementById('bookContent');
+        const chapterItems = document.querySelectorAll('.chapter-item');
+        const prevChapter = document.getElementById('prevChapter');
+        const nextChapter = document.getElementById('nextChapter');
+        const fontIncrease = document.getElementById('fontIncrease');
+        const fontDecrease = document.getElementById('fontDecrease');
+        const bookmarkBtn = document.getElementById('bookmarkBtn');
+        const backToTop = document.getElementById('backToTop');
+        const readingProgress = document.getElementById('readingProgress');
+        const searchInput = document.getElementById('searchInput');
+        const readingTime = document.getElementById('readingTime');
+        const loading = document.getElementById('loading');
+
+        // Toggle sidebar
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('full-width');
+        });
+
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            themeIcon.textContent = isDarkMode ? '☀️' : '🌙';
+            themeToggle.querySelector('span:last-child').textContent = isDarkMode ? 'Chế độ sáng' : 'Chế độ tối';
+            localStorage.setItem('darkMode', isDarkMode);
+        });
+
+        // Fullscreen toggle
+        fullscreenToggle.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Load chapter
+        function loadChapter(index) {
+            if (index >= 0 && index < bookChapters.length) {
+                loading.classList.add('show');
+                setTimeout(() => {
+                    currentChapter = index;
+                    bookContent.innerHTML = bookChapters[index].content;
+                    updateChapterSelection();
+                    updateNavButtons();
+                    updateReadingTime();
+                    checkBookmark();
+                    window.scrollTo(0, 0);
+                    loading.classList.remove('show');
+                }, 300);
+            }
+        }
+
+        // Update chapter selection
+        function updateChapterSelection() {
+            chapterItems.forEach((item, index) => {
+                item.classList.toggle('active', index === currentChapter);
+            });
+        }
+
+        // Update navigation buttons
+        function updateNavButtons() {
+            prevChapter.disabled = currentChapter === 0;
+            nextChapter.disabled = currentChapter === bookChapters.length - 1;
+        }
+
+        // Chapter navigation
+        chapterItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                loadChapter(index);
+            });
+        });
+
+        prevChapter.addEventListener('click', () => {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        });
+
+        nextChapter.addEventListener('click', () => {
+            if (currentChapter < bookChapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        });
+
+        // Font size controls
+        fontIncrease.addEventListener('click', () => {
+            if (fontSize < 30) {
+                fontSize += 2;
+                document.getElementById('contentWrapper').style.fontSize = fontSize + 'px';
+                localStorage.setItem('fontSize', fontSize);
+            }
+        });
+
+        fontDecrease.addEventListener('click', () => {
+            if (fontSize > 12) {
+                fontSize -= 2;
+                document.getElementById('contentWrapper').style.fontSize = fontSize + 'px';
+                localStorage.setItem('fontSize', fontSize);
+            }
+        });
+
+        // Bookmark functionality
+        bookmarkBtn.addEventListener('click', () => {
+            const chapterId = `chapter-${currentChapter}`;
+            const bookmarkIndex = bookmarks.indexOf(chapterId);
+            
+            if (bookmarkIndex === -1) {
+                bookmarks.push(chapterId);
+                bookmarkBtn.classList.add('bookmarked');
+                showTooltip('Đã đánh dấu chương này');
+            } else {
+                bookmarks.splice(bookmarkIndex, 1);
+                bookmarkBtn.classList.remove('bookmarked');
+                showTooltip('Đã xóa đánh dấu');
+            }
+            
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        });
+
+        function checkBookmark() {
+            const chapterId = `chapter-${currentChapter}`;
+            if (bookmarks.includes(chapterId)) {
+                bookmarkBtn.classList.add('bookmarked');
+            } else {
+                bookmarkBtn.classList.remove('bookmarked');
+            }
+        }
+
+        // Show tooltip
+        function showTooltip(message) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip show';
+            tooltip.textContent = message;
+            tooltip.style.position = 'fixed';
+            tooltip.style.top = '50%';
+            tooltip.style.left = '50%';
+            tooltip.style.transform = 'translate(-50%, -50%)';
+            document.body.appendChild(tooltip);
+            
+            setTimeout(() => {
+                tooltip.remove();
+            }, 2000);
+        }
+
+        // Back to top
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.pageYOffset;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            // Show/hide back to top
+            if (scrollPosition > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+            
+            // Update reading progress
+            const progress = (scrollPosition / (documentHeight - windowHeight)) * 100;
+            readingProgress.style.width = progress + '%';
+        });
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            chapterItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Calculate reading time
+        function updateReadingTime() {
+            const text = bookContent.textContent;
+            const wordsPerMinute = 200;
+            const words = text.trim().split(/\s+/).length;
+            const minutes = Math.ceil(words / wordsPerMinute);
+            readingTime.textContent = `${minutes} phút`;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && !prevChapter.disabled) {
+                loadChapter(currentChapter - 1);
+            } else if (e.key === 'ArrowRight' && !nextChapter.disabled) {
+                loadChapter(currentChapter + 1);
+            } else if (e.key === 'b' && e.ctrlKey) {
+                bookmarkBtn.click();
+            } else if (e.key === 'd' && e.ctrlKey) {
+                e.preventDefault();
+                themeToggle.click();
+            } else if (e.key === 'm' && e.ctrlKey) {
+                e.preventDefault();
+                menuToggle.click();
+            }
+        });
+
+        // Load saved preferences
+        function loadPreferences() {
+            // Dark mode
+            const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (savedDarkMode) {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+                themeIcon.textContent = '☀️';
+                themeToggle.querySelector('span:last-child').textContent = 'Chế độ sáng';
+            }
+            
+            // Font size
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                fontSize = parseInt(savedFontSize);
+                document.getElementById('contentWrapper').style.fontSize = fontSize + 'px';
+            }
+            
+            // Last reading position
+            const lastChapter = localStorage.getItem('lastChapter');
+            if (lastChapter) {
+                currentChapter = parseInt(lastChapter);
+            }
+        }
+
+        // Save reading position
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('lastChapter', currentChapter);
+        });
+
+        // Initialize
+        detectDevice();
+        adjustFontSize();
+        loadPreferences();
+        loadChapter(currentChapter);
+
+        // Mobile menu close on chapter select
+        chapterItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (isMobile || isTablet) {
+                    sidebar.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    removeOverlay();
+                }
+            });
+        });
+
+        // Touch swipe support for chapter navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipeGesture();
+        });
+        
+        function handleSwipeGesture() {
+            const swipeThreshold = 100;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0 && !nextChapter.disabled) {
+                    // Swipe left - next chapter
+                    loadChapter(currentChapter + 1);
+                } else if (diff < 0 && !prevChapter.disabled) {
+                    // Swipe right - previous chapter
+                    loadChapter(currentChapter - 1);
+                }
+            }
+        }
+
+        // Auto-hide header on scroll (mobile)
+        let lastScrollTop = 0;
+        const header = document.querySelector('.header');
+        let scrollTimeout;
+        
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                if (isMobile || isTablet) {
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    if (scrollTop > lastScrollTop && scrollTop > 100) {
+                        header.style.transform = 'translateY(-100%)';
+                    } else {
+                        header.style.transform = 'translateY(0)';
+                    }
+                    lastScrollTop = scrollTop;
+                }
+            }, 100);
+        });
+        
+        // Prevent zoom on double tap (iOS)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Add CSS for smooth transitions
+        const style = document.createElement('style');
+        style.textContent = `
+            .header {
+                transition: transform 0.3s ease;
+            }
+            
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation: none !important;
+                    transition: none !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
